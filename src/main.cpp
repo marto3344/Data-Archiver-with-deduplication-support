@@ -3,11 +3,13 @@
 #include <vector>
 #include <cstring>
 #include <exception>
-#include "storage.hpp"
+#include "storageManager.hpp"
+
+
 namespace fs  = std::filesystem;
 
 void parseDirectories(size_t start, const size_t end, const  char* input [], std::vector<fs::path>& directories){
-    while (start < end)
+    for (size_t i = start; i < end; i++)
     {   
         fs::path p (input[start]);
         if(!fs::exists(p))
@@ -18,10 +20,8 @@ void parseDirectories(size_t start, const size_t end, const  char* input [], std
             errorMsg.append("Make sure the path exists! Also use quotations if needed!");
             throw std::invalid_argument(errorMsg);
         }
-        directories.push_back(fs::canonical(p));
-        start++;
+        directories.push_back(fs::canonical(p));    
     }
-    
 }
 
 int findCommand (const char ** commandList, const size_t listSize, const char* command)
@@ -82,7 +82,7 @@ int main(int argc, const char * argv[])
             size_t directoriesStart = hashOnly? 4:3;
             std::vector<fs::path> directories;
             parseDirectories(directoriesStart,argc,argv,directories);
-            Storage::CreateArchive(hashOnly,archiveName,directories);
+            StorageManager::CreateArchive(hashOnly,archiveName,directories);
 
         }
         catch(const std::exception& e)

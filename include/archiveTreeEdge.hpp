@@ -7,11 +7,9 @@
 #include<fstream>
 #include<cstddef>
 #include<chrono>
-
-class archiveEdge{
-    public:
-    uint64_t next;
+using time_point = std::chrono::system_clock::time_point;
+struct archiveEdge{
+    time_point  lastModified;
     std::string label;
 };
-
 #endif

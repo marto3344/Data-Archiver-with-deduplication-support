@@ -13,10 +13,10 @@ using time_point = std::chrono::system_clock::time_point;
 class File{
 
     private:
+    time_point last_modified;
     uint32_t id;
     uint32_t size;
-    uint64_t chunk_list_head;//???
-    time_point last_modified;
+    //uint64_t chunk_list_head;//Pointer to a linked list
     std::string name;
     std::vector<uint64_t>chunks;
 
