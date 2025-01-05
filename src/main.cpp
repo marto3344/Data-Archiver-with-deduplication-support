@@ -1,6 +1,6 @@
 #include<iostream>
 #include<filesystem>
-#include <vector>
+#include<set>
 #include <cstring>
 #include <exception>
 #include "storageManager.hpp"
@@ -8,19 +8,19 @@
 
 namespace fs  = std::filesystem;
 
-void parseDirectories(size_t start, const size_t end, const  char* input [], std::vector<fs::path>& directories){
+void parseDirectories(size_t start, const size_t end, const  char* input [], std::set<fs::path>& directories){
     for (size_t i = start; i < end; i++)
     {   
-        fs::path p (input[start]);
+        fs::path p (input[i]);
         if(!fs::exists(p))
         {   
             std::string errorMsg = "Invalid path: ";
-            errorMsg.append(input[start]);
+            errorMsg.append(input[i]);
             errorMsg+='\n';
             errorMsg.append("Make sure the path exists! Also use quotations if needed!");
             throw std::invalid_argument(errorMsg);
         }
-        directories.push_back(fs::canonical(p));    
+        directories.insert(fs::canonical(p));    
     }
 }
 
@@ -80,7 +80,7 @@ int main(int argc, const char * argv[])
             bool hashOnly = (strcmp(argv[2], "hash-only") == 0);
             std::string archiveName = hashOnly? argv[3]:argv[2];
             size_t directoriesStart = hashOnly? 4:3;
-            std::vector<fs::path> directories;
+            std::set<fs::path> directories;
             parseDirectories(directoriesStart,argc,argv,directories);
             StorageManager::CreateArchive(hashOnly,archiveName,directories);
 
@@ -117,7 +117,7 @@ int main(int argc, const char * argv[])
             bool hashOnly = (strcmp(argv[2], "hash-only") == 0);
             std::string archiveName = hashOnly? argv[3]:argv[2];
             size_t directoriesStart = hashOnly? 4:3;
-            std::vector<fs::path> directories;
+            std::set<fs::path> directories;
             parseDirectories(directoriesStart,argc,argv,directories);
         }
         catch(const std::exception& e)

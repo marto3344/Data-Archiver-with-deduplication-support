@@ -6,11 +6,12 @@
 #include<filesystem>
 #include<vector>
 #include<fstream>
+#include<set>
 namespace fs =std::filesystem;
 class StorageManager{
     public:
     StorageManager() = delete;
-    static void CreateArchive(const bool& hashOnly,const std::string& name,std::vector<fs::path>& dirs);
+    static void CreateArchive(const bool& hashOnly,const std::string& name,std::set<fs::path>& dirs);
     static void ExtraxtArchive(){};
     static void CheckArchive(){};
     static void UpdateArchive(){};

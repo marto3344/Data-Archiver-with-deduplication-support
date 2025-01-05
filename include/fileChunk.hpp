@@ -18,7 +18,8 @@ class FileChunk{
     time_point last_modified;
     uint32_t filesCount;
     uint32_t size;
-    uint64_t fileRefs;
+    uint64_t hash;
+    uint64_t chunk_id;
     std::vector<uint8_t> chunk_data;
 
 };
