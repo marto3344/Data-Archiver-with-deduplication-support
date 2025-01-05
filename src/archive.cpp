@@ -12,6 +12,13 @@ void Archive::readFromFile(std::ifstream &in)
 
 void Archive::freeRec(archiveNode * node)
 {
-    
-    
+    if(!node)
+    {
+        return;
+    }   
+    for(auto& child:node->next)
+    {
+        freeRec(child);
+    }
+    delete node;
 }
