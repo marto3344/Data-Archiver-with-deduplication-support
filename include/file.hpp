@@ -29,7 +29,7 @@ class File{
     uint32_t id;
     uint64_t size;
     std::string name;
-    std::vector<std::pair<uint64_t,uint64_t>>chunks;
+    std::vector<std::pair<uint64_t,uint64_t>>chunks;//{hash_value, chunk_id}
 
 };
 #endif
