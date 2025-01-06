@@ -10,7 +10,7 @@ using time_point = std::chrono::system_clock::time_point;
 class FileChunk{
     public:
     FileChunk() = default;
-    void readFromFile(std::ifstream& in, const size_t& size);
+    void readFromFile(std::ifstream& in);
     void writeToFile (std::ofstream& out)const;
 
     uint64_t calculateHash();

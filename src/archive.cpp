@@ -15,10 +15,14 @@ void Archive::freeRec(archiveNode * node)
     if(!node)
     {
         return;
-    }   
+    }
     for(auto& child:node->next)
     {
         freeRec(child);
     }
+    for(auto& file:node->files)
+    {
+        delete file;
+    }   
     delete node;
 }
