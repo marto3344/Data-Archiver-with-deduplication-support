@@ -1,6 +1,6 @@
 #include "file.hpp"
 
-void File::writeMetaData(std::ofstream &out)//TODO::Better exception handling
+void File::writeMetaData(std::ofstream &out) const//TODO::Better exception handling
 {
     if(!out.is_open())
     {
@@ -35,7 +35,7 @@ void File::readMetaData(std::ifstream &in)
     in.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
     in.read(reinterpret_cast<char*>(&size),sizeof(uint64_t));
     size_t nameSize = 0;
-    
+
     name.reserve(nameSize);
     in.read(reinterpret_cast<char*>(&nameSize),sizeof(size_t));
     in.read(reinterpret_cast<char*>(&name),sizeof(nameSize));
@@ -45,7 +45,10 @@ void File::readMetaData(std::ifstream &in)
     chunks.reserve(dataSize);
     for (size_t i = 0; i < dataSize; i++)
     {
-        in.read(reinterpret_cast<char*>(&chunks[i].first),sizeof(uint64_t));
-        in.read(reinterpret_cast<char*>(&chunks[i].second),sizeof(uint64_t));
+        uint64_t hash, chunkId;
+
+        in.read(reinterpret_cast<char*>(&hash),sizeof(uint64_t));
+        in.read(reinterpret_cast<char*>(&chunkId),sizeof(uint64_t));
+        chunks.push_back({hash,chunkId});
     }
 }

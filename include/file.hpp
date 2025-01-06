@@ -17,7 +17,7 @@ class File{
     public:
     File() = default;
     
-    void writeMetaData(std::ofstream&out);
+    void writeMetaData(std::ofstream&out) const;
     void readMetaData(std::ifstream& in);
 
     bool extractFile(const fs::path& path, std::ifstream& in) const;
