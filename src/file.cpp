@@ -36,8 +36,8 @@ void File::readMetaData(std::ifstream &in)
     in.read(reinterpret_cast<char*>(&size),sizeof(uint64_t));
     size_t nameSize = 0;
 
-    name.reserve(nameSize);
     in.read(reinterpret_cast<char*>(&nameSize),sizeof(size_t));
+    name.reserve(nameSize);
     in.read(reinterpret_cast<char*>(&name),sizeof(nameSize));
 
     size_t dataSize = 0;
