@@ -5,6 +5,7 @@
 #include<filesystem>
 #include<set>
 #include<fstream>
+#include "file.hpp"
 namespace fs =std::filesystem;
 
 void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name, std::set<fs::path> &dirs)
@@ -14,9 +15,16 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     {
         fs::create_directory(archivesData);
     }
-    initializeStorage();
+  
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
+    // --
+    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
+
+    File f;
+    std::ifstream in;
+    f.storeFile(testPath,in);
+    //--
     filename.append(".dat");
     filePath.append(filename);
     if(fs::exists(filePath))
@@ -25,20 +33,12 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
         return;
     }
     std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
-  
-    for (auto it = dirs.begin(); it != dirs.end(); ++it)
-    {
-       const fs::path& currFile = *it;
-       std::cout << currFile.string() << std::endl;
-    }
     
     if(fs::exists(filePath))
     {
         std::cout<<"Archive created successfully"<<'\n';
         
     }
-    //Calculate block properties
-    //Store it depending on hash-only?
     out.close();
 }
 
@@ -61,6 +61,8 @@ void StorageManager::initializeStorage()
 void StorageManager::initializeBucketList() 
 {
     std::ofstream out(STORAGE_BUCKETLIST, std::ios::trunc | std::ios::binary);
+    if(!out.is_open())
+        throw std::runtime_error("Coudn't initialize storage bucket list!");
     uint64_t emptyBucketVal = 0;
     uint32_t size = 0;
     uint32_t capacity = 1<<17; //This is for 1MB bucket list size

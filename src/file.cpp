@@ -1,4 +1,7 @@
 #include "file.hpp"
+extern "C" {
+    #include "xxhash.h"
+}
 
 void File::writeMetaData(std::ofstream &out) const//TODO::Better exception handling
 {
@@ -60,5 +63,34 @@ bool File::extractFile(const fs::path &path, std::ifstream &in) const
 
 bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
 {
+
     return false;
+}
+
+bool File::storeFile(const fs::path &file, std::ifstream &stoarge) 
+{
+    return hashFile(file,stoarge); 
+}
+
+bool File::hashFile(const fs::path &filePath, std::ifstream &storage)
+{
+    std::ifstream file(filePath, std::ios::binary);
+    if(!file.is_open())
+        return false;
+    const size_t buffer_size = 64 * 1024; // 64 KB buffer
+    std::vector<uint8_t> buffer(buffer_size);
+    uintmax_t filesize = fs::file_size(filePath);
+    //std::cout<<"Filesize: "<<filesize<<'\n';
+    size_t total_chunks = 0;
+
+    while (file.good()&&!file.eof()) { 
+        file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
+        uint64_t hashValue = XXH64(buffer.data(),buffer_size,0);
+        //TODO: Add logic for block hashing and better exception safety
+        //total_chunks++;
+        //std::cout<<"Chunk: "<<total_chunks<<" hash value: "<<hashValue<<'\n';
+    }
+    bool result = !file.good()&&file.eof();
+    file.close(); 
+    return result;
 }

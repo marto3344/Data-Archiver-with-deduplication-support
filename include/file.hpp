@@ -22,7 +22,8 @@ class File{
 
     bool extractFile(const fs::path& path, std::ifstream& in) const;
     bool updateFile(const fs::path& targerFile, std::ifstream& in);
-    bool storeFile (std::ifstream& in ) const;
+    bool storeFile (const fs::path& file, std::ifstream& stoarge );
+    
 
     private:
     time_point last_modified;
@@ -30,6 +31,8 @@ class File{
     uint64_t size;
     std::string name;
     std::vector<std::pair<uint64_t,uint64_t>>chunks;//{hash_value, chunk_id}
+    bool hashFile (const fs::path& filePath, std::ifstream& storage);
+
 
 };
 #endif
