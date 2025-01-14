@@ -32,6 +32,10 @@ private:
         archiveNode (archiveNode&& rhs);
         void readFromFile(std::ifstream& in);
         void writeToFile(std::ofstream& out) const;
+        ~archiveNode();
+        private:
+            void free();
+            void copy(const archiveNode& other);
     
     };
 

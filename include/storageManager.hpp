@@ -12,13 +12,13 @@ class StorageManager{
     public:
     StorageManager() = delete;
     static void CreateArchive(const bool& hashOnly,const std::string& name,std::set<fs::path>& dirs);
-    static void ExtraxtArchive(){};
-    static void CheckArchive(){};
-    static void UpdateArchive(){};
+    static void ExtraxtArchive();
+    static void CheckArchive();
+    static void UpdateArchive();
+    static void initializeStorage();
     private:
-    double getLoadFactor() const {return 0;};
-    static void initializeFiles(){};
     static bool ArchiveExists() {return false;};
+    static void initializeBucketList();
 
 
 };

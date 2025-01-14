@@ -52,3 +52,13 @@ void File::readMetaData(std::ifstream &in)
         chunks.push_back({hash,chunkId});
     }
 }
+
+bool File::extractFile(const fs::path &path, std::ifstream &in) const
+{
+    return false;
+}
+
+bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
+{
+    return false;
+}
