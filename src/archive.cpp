@@ -7,7 +7,7 @@ void Archive::writeToFile(std::ofstream &out) const
     {
         throw std::invalid_argument("File is not opened!Can not read archive data");
     }
-    root->writeToFile(out);
+    writeRec(root,out);
 }
 
 void Archive::readFromFile(std::ifstream &in)
@@ -36,49 +36,30 @@ void Archive::freeRec(archiveNode * node)
     delete node;
 }
 
-Archive::archiveNode::archiveNode(const archiveNode &other)
+void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const 
 {
-}
 
-Archive::archiveNode::archiveNode(archiveNode &&rhs)
-{
-}
-
-void Archive::archiveNode::readFromFile(std::ifstream &in)
-{
-}
-
-void Archive::archiveNode::writeToFile(std::ofstream &out) const
-{
     if(!out.is_open())
     {
         std::cout<<"Error! Can't write the archive data! Archive file is not opened!";
         return;
     }
-    size_t filesSize =files.size();
+    if(!curr)
+        return;
+    size_t filesSize =curr->files.size();
     out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
     for (size_t i = 0; i < filesSize; i++)
     {
-        files[i]->writeMetaData(out);
+        curr->files[i]->writeMetaData(out);
     }
-    size_t childrenSize = next.size();
+    size_t LabelSize =curr->dirLabel.size();
+    out.write(reinterpret_cast<const char*>(&LabelSize),sizeof(size_t));
+    out.write(reinterpret_cast<const char*>(&curr->dirLabel),LabelSize);
+    size_t childrenSize = curr->next.size();
     out.write(reinterpret_cast<const char*>(&childrenSize), sizeof(size_t));
     for (size_t i = 0; i < childrenSize; i++)
     {
-        next[i]->writeToFile(out);
-    }
-    
-}
-
-Archive::archiveNode::~archiveNode()
-{
-    free();
-}
-
-void Archive::archiveNode::free()
-{
-    for(auto& file:files)
-    {
-        delete file;
+        writeRec(curr->next[i],out);
     }
 }
+

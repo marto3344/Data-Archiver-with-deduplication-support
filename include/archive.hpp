@@ -20,22 +20,12 @@ public:
     void readFromFile(std::ifstream &in);
 
 private:
-    class archiveNode
+    struct archiveNode
     {
         public:
         std::vector<File*>files;
         std::string dirLabel;
         std::vector<archiveNode*>next;
-    
-        archiveNode()= default;
-        archiveNode (const archiveNode& other);
-        archiveNode (archiveNode&& rhs);
-        void readFromFile(std::ifstream& in);
-        void writeToFile(std::ofstream& out) const;
-        ~archiveNode();
-        private:
-            void free();
-            void copy(const archiveNode& other);
     
     };
 
@@ -44,6 +34,7 @@ private:
     std::string name;
     void freeRec(archiveNode*);
     void copyRec (archiveNode*);
+    void writeRec(const archiveNode* curr, std::ofstream& out) const;
 };
 
 #endif
