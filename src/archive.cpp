@@ -1,6 +1,11 @@
 #include "archive.hpp"
 #include<exception>
 
+Archive::Archive(const Archive &other)
+{
+    copyRec(root,other.root);
+}
+
 void Archive::writeToFile(std::ofstream &out) const
 {
     if(!out.is_open())
@@ -37,6 +42,13 @@ void Archive::freeRec(archiveNode*& node)
     }   
     delete node;
     node = nullptr;
+}
+
+void Archive::copyRec(archiveNode *&root, const archiveNode *otherRoot)
+{
+    if(!otherRoot)
+        return;
+    //TODO:: Implement copying
 }
 
 void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const 
