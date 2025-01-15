@@ -16,16 +16,18 @@ void Archive::readFromFile(std::ifstream &in)
     {
         throw std::invalid_argument("File is not opened!Can not read archive data");
     }
-    root->readFromFile(in);
+    if(root)
+        freeRec(root);
+    readRec(root,in);
 }
 
-void Archive::freeRec(archiveNode * node)
+void Archive::freeRec(archiveNode*& node)
 {
     if(!node)
     {
         return;
     }
-    for(auto& child:node->next)
+    for(auto& child:node->children)
     {
         freeRec(child);
     }
@@ -34,16 +36,11 @@ void Archive::freeRec(archiveNode * node)
         delete file;
     }   
     delete node;
+    node = nullptr;
 }
 
 void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const 
 {
-
-    if(!out.is_open())
-    {
-        std::cout<<"Error! Can't write the archive data! Archive file is not opened!";
-        return;
-    }
     if(!curr)
         return;
     size_t filesSize =curr->files.size();
@@ -55,11 +52,44 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
     size_t LabelSize =curr->dirLabel.size();
     out.write(reinterpret_cast<const char*>(&LabelSize),sizeof(size_t));
     out.write(reinterpret_cast<const char*>(&curr->dirLabel),LabelSize);
-    size_t childrenSize = curr->next.size();
+    size_t childrenSize = 0;
+    std::vector<int>childrenIndexes;
+    for (int i = 0; i < curr->children.size(); i++)
+    {
+        if(curr->children[i])
+        {
+            childrenIndexes.push_back(i);
+            childrenSize++;
+        }
+    }  
     out.write(reinterpret_cast<const char*>(&childrenSize), sizeof(size_t));
     for (size_t i = 0; i < childrenSize; i++)
     {
-        writeRec(curr->next[i],out);
+        writeRec(curr->children[childrenIndexes[i]],out);
     }
 }
 
+void Archive::readRec(archiveNode *&curr, std::ifstream &in)
+{
+    root = new archiveNode();
+    size_t filesSize = 0;
+    in.read(reinterpret_cast<char*>(&filesSize),sizeof(size_t));
+    root->files.reserve(filesSize);
+    for (int i = 0; i < filesSize; i++)
+    {
+        File* f = new File;
+        f->readMetaData(in);
+        root->files.push_back(f);
+    }
+    size_t labelSize = 0;
+    in.read(reinterpret_cast<char*>(&labelSize), sizeof(size_t));
+    curr->dirLabel.reserve(labelSize);
+    in.read(reinterpret_cast<char*>(&curr->dirLabel),sizeof(labelSize));
+    size_t childrenSize = 0;
+    in.read(reinterpret_cast<char*>(&childrenSize),sizeof(size_t));
+    curr->children.reserve(childrenSize);
+    for (int i = 0; i < childrenSize; i++)
+    {
+        readRec(curr->children[i],in);
+    }
+}

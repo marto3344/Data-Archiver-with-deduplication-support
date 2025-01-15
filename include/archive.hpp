@@ -15,6 +15,9 @@ public:
     Archive() = default;
     Archive (const Archive & other);
     Archive (Archive&& rhs);
+    Archive& operator= (const Archive& other);
+    Archive& operator=(Archive && rhs);
+
 
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
@@ -25,16 +28,17 @@ private:
         public:
         std::vector<File*>files;
         std::string dirLabel;
-        std::vector<archiveNode*>next;
+        std::vector<archiveNode*>children;
     
     };
 
     time_point date_archived;
     archiveNode* root = nullptr;
     std::string name;
-    void freeRec(archiveNode*);
+    void freeRec(archiveNode*&);
     void copyRec (archiveNode*);
     void writeRec(const archiveNode* curr, std::ofstream& out) const;
+    void readRec(archiveNode*& curr,std::ifstream& in);
 };
 
 #endif
