@@ -50,6 +50,24 @@ void Archive::archiveNode::readFromFile(std::ifstream &in)
 
 void Archive::archiveNode::writeToFile(std::ofstream &out) const
 {
+    if(!out.is_open())
+    {
+        std::cout<<"Error! Can't write the archive data! Archive file is not opened!";
+        return;
+    }
+    size_t filesSize =files.size();
+    out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
+    for (size_t i = 0; i < filesSize; i++)
+    {
+        files[i]->writeMetaData(out);
+    }
+    size_t childrenSize = next.size();
+    out.write(reinterpret_cast<const char*>(&childrenSize), sizeof(size_t));
+    for (size_t i = 0; i < childrenSize; i++)
+    {
+        next[i]->writeToFile(out);
+    }
+    
 }
 
 Archive::archiveNode::~archiveNode()

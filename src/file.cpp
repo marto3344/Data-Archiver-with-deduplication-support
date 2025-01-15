@@ -10,7 +10,7 @@ void File::writeMetaData(std::ofstream &out) const//TODO::Better exception handl
         throw std::invalid_argument("file not opened");
     }
     out.write(reinterpret_cast<const char*>(&last_modified),sizeof(time_point));
-    out.write(reinterpret_cast<const char*>(&id), sizeof(uint32_t));
+    //out.write(reinterpret_cast<const char*>(&id), sizeof(uint32_t));
     out.write(reinterpret_cast<const char*>(&size),sizeof(uint64_t));
     size_t nameSize = name.size();
 
@@ -35,7 +35,7 @@ void File::readMetaData(std::ifstream &in)
         throw std::invalid_argument("file not opened");
     }
     in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
-    in.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
+    //in.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
     in.read(reinterpret_cast<char*>(&size),sizeof(uint64_t));
     size_t nameSize = 0;
 
@@ -86,6 +86,7 @@ bool File::hashFile(const fs::path &filePath, std::ifstream &storage)
     while (file.good()&&!file.eof()) { 
         file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
         uint64_t hashValue = XXH64(buffer.data(),buffer_size,0);
+        
         //TODO: Add logic for block hashing and better exception safety
         //total_chunks++;
         //std::cout<<"Chunk: "<<total_chunks<<" hash value: "<<hashValue<<'\n';

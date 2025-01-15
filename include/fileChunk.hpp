@@ -2,6 +2,7 @@
 
 #ifndef _FILE_CHUNK_HEADER_INCLUDED_
 #define _FILE_CHUNK_HEADER_INCLUDED_
+
 #include<cstddef>
 #include<fstream>
 #include<chrono>
@@ -12,12 +13,14 @@ class FileChunk{
     FileChunk() = default;
     void readFromFile(std::ifstream& in);
     void writeToFile (std::ofstream& out)const;
-
+    bool operator=(const FileChunk&other);
     uint64_t calculateHash();
+    uint32_t getChunkSize() const { return chunkSize;};
     private:
+    static const uint32_t chunkSize;
+
     time_point last_modified;
     uint32_t filesCount;
-    uint32_t size;
     uint64_t hash;
     uint64_t chunk_id;
     std::vector<uint8_t> chunk_data;

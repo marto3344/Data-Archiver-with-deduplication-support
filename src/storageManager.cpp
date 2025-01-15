@@ -2,6 +2,7 @@
 #define ARCHIVES_DATA_PATH "../data/archives_data/"
 #define STORAGE_METADATA "../data/storage_metadata.dat"
 #define STORAGE_BUCKETLIST "../data/storage_bucket_list.dat"
+#define STORAGE_CHAINS "../data/_storage.dat"
 #include<filesystem>
 #include<set>
 #include<fstream>
