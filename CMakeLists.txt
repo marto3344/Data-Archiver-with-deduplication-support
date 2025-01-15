@@ -10,3 +10,8 @@ file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+option(BUILD_TESTS "Build tests" ON)
+if(BUILD_TESTS)
+    add_subdirectory(test)
+endif()
