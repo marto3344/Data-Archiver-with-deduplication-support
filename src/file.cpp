@@ -89,7 +89,6 @@ bool File::hashFile(const fs::path &filePath,std::fstream& bucketList, std::fstr
         curr.hashChunk();
         curr.storeChunk(storage,bucketList,bucketListCapacity,bucketListSize, hashOnly);
         chunk_list.push_back({curr.getHash(),curr.getId()});
-        std::cout<<"hash: value:"<<curr.getHash()<<'\n';
         total_chunks++;
     }
     std::cout<<total_chunks;

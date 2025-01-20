@@ -73,20 +73,23 @@ void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint3
         throw std::runtime_error("Error! Can't store the chunk!");
     }   
     uint32_t bucketPos = hash%capacity;
-    bucketList.seekg(2+bucketPos);
-    bucketList.seekp(2+bucketPos);
-    uint64_t bucketval;
-    bucketList.read(reinterpret_cast<char*>(&bucketval),sizeof(uint64_t));
-    bool writeChunk = true;
-    if(bucketval != 0)
+    uint32_t initialOffset = 2*sizeof(uint32_t);//size and capacity at the begin of the list file
+    bucketList.seekg(initialOffset+bucketPos*sizeof(uint64_t));
+    bucketList.seekp(initialOffset+bucketPos*sizeof(uint64_t));
+    uint64_t listHead = 0;
+    bucketList.read(reinterpret_cast<char*>(&listHead),sizeof(uint64_t));
+    if(listHead != 0)
     {
-        storage.seekg(bucketval);
-        storage.seekp(bucketval);
+        std::cout<<"List head: "<<listHead<<'\n';
+        storage.seekg(listHead);
+        storage.seekp(listHead);
         
         for(;;)//TODO: Add this logic in a separate function
         {
             uint64_t nextChunk;
             FileChunk currChunk;
+            if(storage.eof())
+                break;
             currChunk.deserialize(storage);
             if(currChunk.hash == this->hash)
             {
@@ -105,13 +108,16 @@ void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint3
             storage.read(reinterpret_cast<char*>(&nextChunk),sizeof(uint64_t));
             if(nextChunk == 0)
                 break;
-        }
-        
-    }
-    if(writeChunk)
-    {
-        //dobawqme v nachaloto na svurzaniq spisuk
-       
-    }
-
+        }//End for
+      }//End if
+        storage.clear();
+        storage.seekg(0,std::ios::end);
+        storage.seekp(0,std::ios::end);
+        uint64_t newHead = storage.tellp();
+        //std::cout<<newHead<<'\n';
+        serialize(storage);
+        storage.write(reinterpret_cast<const char*>(&listHead),sizeof(uint64_t));
+        bucketList.seekg(initialOffset+bucketPos*sizeof(uint64_t));
+        bucketList.seekp(initialOffset+bucketPos*sizeof(uint64_t));
+        bucketList.write(reinterpret_cast<const char*>(&newHead),sizeof(uint64_t));
 }

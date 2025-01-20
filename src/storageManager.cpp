@@ -24,7 +24,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
     File f;
     uint32_t storageSize = 0;
-    uint32_t storageCapacity = 131072;
+    uint32_t storageCapacity = 1<<17;;
     f.storeFile(testPath,bucketList,storage,storageCapacity,storageSize,hashOnly);
     storage.close();
     bucketList.close();
