@@ -59,7 +59,7 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
     out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
     for (size_t i = 0; i < filesSize; i++)
     {
-        curr->files[i]->writeMetaData(out);
+        curr->files[i]->serialize(out);
     }
     size_t LabelSize =curr->dirLabel.size();
     out.write(reinterpret_cast<const char*>(&LabelSize),sizeof(size_t));
@@ -90,7 +90,7 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
     for (int i = 0; i < filesSize; i++)
     {
         File* f = new File;
-        f->readMetaData(in);
+        f->deserialize(in);
         root->files.push_back(f);
     }
     size_t labelSize = 0;

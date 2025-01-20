@@ -54,6 +54,18 @@ bool FileChunk::hashChunk()
     return true; 
 }
 
+bool FileChunk::compareChunkData(const FileChunk &other) const
+{
+    if(chunk_data.size() != other.chunk_data.size())
+        return false;
+    for (size_t i = 0; i < other.chunk_data.size(); i++)
+    {
+        if(chunk_data[i] != other.chunk_data[i])
+            return false;
+    }   
+    return true;
+}
+
 void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint32_t capacity, uint32_t&size, const bool  hashOnly)
 {
     if(!storage.is_open() || !bucketList.is_open())
@@ -76,10 +88,18 @@ void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint3
             uint64_t nextChunk;
             FileChunk currChunk;
             currChunk.deserialize(storage);
-            if(hashOnly&&currChunk.hash == this->hash)
+            if(currChunk.hash == this->hash)
             {
-                this->chunk_id = currChunk.chunk_id;
-                return;
+                if(hashOnly)
+                {
+                    this->chunk_id = currChunk.chunk_id;
+                    return;
+                }
+                if(compareChunkData(currChunk))
+                {
+                    this->chunk_id = currChunk.chunk_id;
+                    return;
+                }
             }
 
             storage.read(reinterpret_cast<char*>(&nextChunk),sizeof(uint64_t));

@@ -17,8 +17,8 @@ class File{
     public:
     File() = default;
     
-    void writeMetaData(std::ofstream&out) const;
-    void readMetaData(std::ifstream& in);
+    void serialize(std::ostream&out) const;
+    void deserialize(std::istream& in);
 
     bool extractFile(const fs::path& path, std::ifstream& in) const;
     bool updateFile(const fs::path& targerFile, std::ifstream& in);
@@ -29,7 +29,7 @@ class File{
     time_point last_modified;
     uint64_t size;
     std::string name;
-    std::vector<std::pair<uint64_t,uint64_t>>chunks;//{hash_value, chunk_id}
+    std::vector<std::pair<uint64_t,uint64_t>>chunk_list;//{hash_value, chunk_id}
     bool hashFile (const fs::path& filePath,std::fstream& bucketList, std::fstream& storage,uint32_t bucketListCapacity, uint32_t& bucketListSize, const bool hashOnly);
 
 
