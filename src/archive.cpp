@@ -102,6 +102,7 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
     curr->children.reserve(childrenSize);
     for (int i = 0; i < childrenSize; i++)
     {
+        curr->children.push_back(nullptr);
         readRec(curr->children[i],in);
     }
 }

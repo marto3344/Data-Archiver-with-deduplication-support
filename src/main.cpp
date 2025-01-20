@@ -44,8 +44,8 @@ int main(int argc, const char * argv[])
         std::cout<<"Error! Empty argument list! Pass help as an argument to see the available commands!\n";
         return -1;
     }
-    const size_t COMMANDS_COUNT = 5;
-    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update"};
+    const size_t COMMANDS_COUNT = 6;
+    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update","initialize"};
 
     int commandNumber = findCommand(commandsList,COMMANDS_COUNT, argv[1]);
     if(commandNumber == -1)
@@ -109,6 +109,34 @@ int main(int argc, const char * argv[])
             size_t directoriesStart = hashOnly? 4:3;
             std::set<fs::path> directories;
             parseDirectories(directoriesStart,argc,argv,directories);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            return -1;
+        }
+        
+    }
+    else if (commandNumber== 5)
+    {
+        try
+        {
+            std::cout<<"Warning! If you run this command all the previous data will be lost! Are you sure? (Type y/n)\n";
+            char c;
+            std::cin>>c;
+            if(c=='y')
+            {
+                StorageManager::InitializeStorage();
+                std::cout<<"Storage initialized successfully!";
+            }
+            else if (c=='n')
+            {
+                return 0;
+            }
+            else{
+                std::cout<<"Error! Unrecognized symbol: "<<c<<'\n';
+                return -1;
+            }
         }
         catch(const std::exception& e)
         {

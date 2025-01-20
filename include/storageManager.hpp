@@ -15,7 +15,7 @@ class StorageManager{
     static void ExtraxtArchive();
     static void CheckArchive();
     static void UpdateArchive();
-    static void initializeStorage();
+    static void InitializeStorage();
     private:
     static bool ArchiveExists() {return false;};
     static void initializeBucketList();

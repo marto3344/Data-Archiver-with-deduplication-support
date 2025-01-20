@@ -16,7 +16,6 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     {
         fs::create_directory(archivesData);
     }
-    initializeStorage();
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
@@ -43,7 +42,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     out.close();
 }
 
-void StorageManager::initializeStorage()
+void StorageManager::InitializeStorage()
 {
     fs::path metadataPath (STORAGE_METADATA);
 
@@ -66,7 +65,6 @@ void StorageManager::initializeStorage()
     {
         chainsFile.write(reinterpret_cast<const char*>(&dummyByte), sizeof(uint8_t));
     }
-    std::cout<<std::boolalpha<<chainsFile.good()<<' '<<chainsFile.bad()<<'\n'; 
     chainsFile.close();
 }
 
