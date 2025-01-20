@@ -19,11 +19,15 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
-    fs::path testPath("D:\\TechStream_12.20.024-v2.ova");
-    std::ofstream storage(STORAGE_CHAINS, std::ios::binary);
+    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
+    std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
+    std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
     File f;
-    uint32_t storageSize = 1000;
-    f.storeFile(testPath,storage,0,storageSize);
+    uint32_t storageSize = 0;
+    uint32_t storageCapacity = 131072;
+    f.storeFile(testPath,bucketList,storage,storageCapacity,storageSize,hashOnly);
+    storage.close();
+    bucketList.close();
     //f.storeFile(testPath,in);
     //--
     filename.append(".dat");

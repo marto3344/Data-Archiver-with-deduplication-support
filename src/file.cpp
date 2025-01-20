@@ -63,12 +63,12 @@ bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
     return false;
 }
 
-bool File::storeFile(const fs::path &file, std::ofstream &stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize) 
+bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream &stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize, const bool hashOnly) 
 {
-    return hashFile(file,stoarge,bucketListCapacity,bucketListSize); 
+    return hashFile(file,bucketList,stoarge,bucketListCapacity,bucketListSize, hashOnly); 
 }
 
-bool File::hashFile(const fs::path &filePath, std::ofstream &storage, uint32_t bucketListCapacity, uint32_t &bucketListSize)
+bool File::hashFile(const fs::path &filePath,std::fstream& bucketList, std::fstream &storage, uint32_t bucketListCapacity, uint32_t &bucketListSize, const bool hashOnly)
 {
     std::ifstream file(filePath, std::ios::binary);
     if(!file.is_open())
@@ -87,6 +87,7 @@ bool File::hashFile(const fs::path &filePath, std::ofstream &storage, uint32_t b
         file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
         curr.moveChunkData(buffer);
         curr.hashChunk();
+        curr.storeChunk(storage,bucketList,bucketListCapacity,bucketListSize, hashOnly);
         std::cout<<"hash: value:"<<curr.getHash()<<'\n';
         total_chunks++;
     }

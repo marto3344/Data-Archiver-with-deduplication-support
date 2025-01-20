@@ -22,7 +22,7 @@ class File{
 
     bool extractFile(const fs::path& path, std::ifstream& in) const;
     bool updateFile(const fs::path& targerFile, std::ifstream& in);
-    bool storeFile (const fs::path& file, std::ofstream& stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize );
+    bool storeFile (const fs::path& file,std::fstream& bucketList, std::fstream& stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize, const bool hashOnly );
     
 
     private:
@@ -30,7 +30,7 @@ class File{
     uint64_t size;
     std::string name;
     std::vector<std::pair<uint64_t,uint64_t>>chunks;//{hash_value, chunk_id}
-    bool hashFile (const fs::path& filePath, std::ofstream& storage,uint32_t bucketListCapacity, uint32_t& bucketListSize);
+    bool hashFile (const fs::path& filePath,std::fstream& bucketList, std::fstream& storage,uint32_t bucketListCapacity, uint32_t& bucketListSize, const bool hashOnly);
 
 
 };

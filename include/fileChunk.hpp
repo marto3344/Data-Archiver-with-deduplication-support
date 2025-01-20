@@ -11,12 +11,12 @@ using time_point = std::chrono::system_clock::time_point;
 class FileChunk{
     public:
     FileChunk();
-    void readFromFile(std::ifstream& in);
-    void writeToFile (std::ofstream& out)const;
+    void deserialize(std::istream& in);
+    void serialize (std::ostream& out)const;
     FileChunk& operator=(const FileChunk&other);
     void moveChunkData(std::vector<uint8_t>& data);
     bool hashChunk();
-    void storeChunk(std::ofstream& storage,uint32_t capacity, uint32_t& size);
+    void storeChunk(std::fstream& storage,std::fstream& bucketList, uint32_t capacity, uint32_t& size, const bool hashOnly);
     uint64_t getHash() const {return hash;};
     static uint32_t getChunkSize(){return chunkSize;};
     private:

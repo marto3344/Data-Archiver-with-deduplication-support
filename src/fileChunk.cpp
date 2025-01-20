@@ -8,11 +8,11 @@ FileChunk::FileChunk()
 {
     chunk_data.reserve(chunkSize);
 }
-void FileChunk::readFromFile(std::ifstream &in)
+void FileChunk::deserialize(std::istream &in)
 {
-    if(!in.is_open())
+    if(!in.good())
     {
-        throw std::invalid_argument("file is not opened"); 
+        throw std::invalid_argument("Bad stream!"); 
     }
     in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
     in.read(reinterpret_cast<char*>(&filesCount),sizeof(uint32_t));
@@ -29,13 +29,8 @@ void FileChunk::readFromFile(std::ifstream &in)
     }
 }
 
-void FileChunk::writeToFile(std::ofstream &out) const
+void FileChunk::serialize(std::ostream &out) const
 {
-    if(!out.is_open())
-    {
-        throw std::invalid_argument("file is not opened"); //TODO: Better exception message
-    }
-
     out.write(reinterpret_cast<const char*> (&last_modified),sizeof(time_point));
     out.write(reinterpret_cast<const char*> (&filesCount),sizeof(uint32_t));
     out.write(reinterpret_cast<const char *> (&hash),sizeof(uint64_t));
@@ -59,8 +54,44 @@ bool FileChunk::hashChunk()
     return true; 
 }
 
-void FileChunk::storeChunk(std::ofstream &storage, uint32_t capacity, uint32_t&size)
+void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint32_t capacity, uint32_t&size, const bool  hashOnly)
 {
-    std::cout<<hash<<'\n';
+    if(!storage.is_open() || !bucketList.is_open())
+    {
+        throw std::runtime_error("Error! Can't store the chunk!");
+    }   
     uint32_t bucketPos = hash%capacity;
+    bucketList.seekg(2+bucketPos);
+    bucketList.seekp(2+bucketPos);
+    uint64_t bucketval;
+    bucketList.read(reinterpret_cast<char*>(&bucketval),sizeof(uint64_t));
+    bool writeChunk = true;
+    if(bucketval != 0)
+    {
+        storage.seekg(bucketval);
+        storage.seekp(bucketval);
+        
+        for(;;)//TODO: Add this logic in a separate function
+        {
+            uint64_t nextChunk;
+            FileChunk currChunk;
+            currChunk.deserialize(storage);
+            if(hashOnly&&currChunk.hash == this->hash)
+            {
+                this->chunk_id = currChunk.chunk_id;
+                return;
+            }
+
+            storage.read(reinterpret_cast<char*>(&nextChunk),sizeof(uint64_t));
+            if(nextChunk == 0)
+                break;
+        }
+        
+    }
+    if(writeChunk)
+    {
+        //dobawqme v nachaloto na svurzaniq spisuk
+       
+    }
+
 }
