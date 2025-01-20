@@ -15,7 +15,7 @@ class FileChunk{
     void writeToFile (std::ofstream& out)const;
     bool operator=(const FileChunk&other);
     uint64_t calculateHash();
-    uint32_t getChunkSize() const { return chunkSize;};
+    static uint32_t getChunkSize(){return chunkSize;};
     private:
     static const uint32_t chunkSize;
 

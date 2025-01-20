@@ -1,4 +1,5 @@
 #include "file.hpp"
+#include"fileChunk.hpp"
 extern "C" {
     #include "xxhash.h"
 }
@@ -77,10 +78,11 @@ bool File::hashFile(const fs::path &filePath, std::ifstream &storage)
     std::ifstream file(filePath, std::ios::binary);
     if(!file.is_open())
         return false;
-    const size_t buffer_size = 64 * 1024; // 64 KB buffer
+    const uint32_t buffer_size = FileChunk::getChunkSize();
+    
     std::vector<uint8_t> buffer(buffer_size);
     uintmax_t filesize = fs::file_size(filePath);
-    //std::cout<<"Filesize: "<<filesize<<'\n';
+   
     size_t total_chunks = 0;
 
     while (file.good()&&!file.eof()) { 
@@ -92,6 +94,6 @@ bool File::hashFile(const fs::path &filePath, std::ifstream &storage)
         //std::cout<<"Chunk: "<<total_chunks<<" hash value: "<<hashValue<<'\n';
     }
     bool result = !file.good()&&file.eof();
-    file.close(); 
+    file.close(); //da go mahnem
     return result;
 }

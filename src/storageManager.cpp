@@ -2,7 +2,7 @@
 #define ARCHIVES_DATA_PATH "../data/archives_data/"
 #define STORAGE_METADATA "../data/storage_metadata.dat"
 #define STORAGE_BUCKETLIST "../data/storage_bucket_list.dat"
-#define STORAGE_CHAINS "../data/_storage.dat"
+#define STORAGE_CHAINS "../data/storage.dat"
 #include<filesystem>
 #include<set>
 #include<fstream>
@@ -16,7 +16,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     {
         fs::create_directory(archivesData);
     }
-  
+    initializeStorage();
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
@@ -57,6 +57,17 @@ void StorageManager::initializeStorage()
     out.write(reinterpret_cast<const char*> (&chunks),sizeof(uint64_t));
     out.close();
     initializeBucketList();
+    fs::path storageChainsPath (STORAGE_CHAINS);
+    std::ofstream chainsFile(storageChainsPath,std::ios::trunc | std::ios::binary);
+    if(!chainsFile.is_open())
+        throw std::runtime_error("Error initializing storage information!");
+    uint8_t dummyByte = 0x00;
+    for(int i = 0; i<2; ++i)
+    {
+        chainsFile.write(reinterpret_cast<const char*>(&dummyByte), sizeof(uint8_t));
+    }
+    std::cout<<std::boolalpha<<chainsFile.good()<<' '<<chainsFile.bad()<<'\n'; 
+    chainsFile.close();
 }
 
 void StorageManager::initializeBucketList() 

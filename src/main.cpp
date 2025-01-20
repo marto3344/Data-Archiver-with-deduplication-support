@@ -28,22 +28,12 @@ int findCommand (const char ** commandList, const size_t listSize, const char* c
 {
     int left = 0;
     int right = listSize - 1;
-    while (left <= right)
+    for (int  i = 0; i < listSize; i++)
     {
-        int middle =  (left + right)/2;
-        int compare = strcmp(command, commandList[middle]); 
+        int compare = strcmp(command, commandList[i]);
         if(compare == 0)
-        {
-            return middle;
-        }
-        else if (compare > 0)
-        {
-           left = middle + 1;
-        }
-        else{
-            right = middle -1;
-        }
-    }  
+            return i;
+    }
     return -1;
 }
 
