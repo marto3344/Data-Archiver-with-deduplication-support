@@ -1,8 +1,5 @@
 #include "file.hpp"
 #include"fileChunk.hpp"
-extern "C" {
-    #include "xxhash.h"
-}
 
 void File::writeMetaData(std::ofstream &out) const//TODO::Better exception handling
 {
@@ -11,7 +8,6 @@ void File::writeMetaData(std::ofstream &out) const//TODO::Better exception handl
         throw std::invalid_argument("file not opened");
     }
     out.write(reinterpret_cast<const char*>(&last_modified),sizeof(time_point));
-    //out.write(reinterpret_cast<const char*>(&id), sizeof(uint32_t));
     out.write(reinterpret_cast<const char*>(&size),sizeof(uint64_t));
     size_t nameSize = name.size();
 
@@ -36,7 +32,6 @@ void File::readMetaData(std::ifstream &in)
         throw std::invalid_argument("file not opened");
     }
     in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
-    //in.read(reinterpret_cast<char*>(&id), sizeof(uint32_t));
     in.read(reinterpret_cast<char*>(&size),sizeof(uint64_t));
     size_t nameSize = 0;
 
@@ -68,32 +63,37 @@ bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
     return false;
 }
 
-bool File::storeFile(const fs::path &file, std::ifstream &stoarge) 
+bool File::storeFile(const fs::path &file, std::ofstream &stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize) 
 {
-    return hashFile(file,stoarge); 
+    return hashFile(file,stoarge,bucketListCapacity,bucketListSize); 
 }
 
-bool File::hashFile(const fs::path &filePath, std::ifstream &storage)
+bool File::hashFile(const fs::path &filePath, std::ofstream &storage, uint32_t bucketListCapacity, uint32_t &bucketListSize)
 {
     std::ifstream file(filePath, std::ios::binary);
     if(!file.is_open())
         return false;
+
     const uint32_t buffer_size = FileChunk::getChunkSize();
     
-    std::vector<uint8_t> buffer(buffer_size);
     uintmax_t filesize = fs::file_size(filePath);
    
     size_t total_chunks = 0;
+    
+    while (file.good()&&!file.eof()) {
 
-    while (file.good()&&!file.eof()) { 
+        std::vector<uint8_t> buffer(buffer_size,0x00);
+        FileChunk curr;
         file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
-        uint64_t hashValue = XXH64(buffer.data(),buffer_size,0);
-        
-        //TODO: Add logic for block hashing and better exception safety
-        //total_chunks++;
-        //std::cout<<"Chunk: "<<total_chunks<<" hash value: "<<hashValue<<'\n';
+        curr.moveChunkData(buffer);
+        curr.hashChunk();
+        std::cout<<"hash: value:"<<curr.getHash()<<'\n';
+        total_chunks++;
     }
+    std::cout<<total_chunks;
     bool result = !file.good()&&file.eof();
-    file.close(); //da go mahnem
+    file.close();
     return result;
+
 }
+

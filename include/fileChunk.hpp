@@ -10,15 +10,17 @@
 using time_point = std::chrono::system_clock::time_point;
 class FileChunk{
     public:
-    FileChunk() = default;
+    FileChunk();
     void readFromFile(std::ifstream& in);
     void writeToFile (std::ofstream& out)const;
-    bool operator=(const FileChunk&other);
-    uint64_t calculateHash();
+    FileChunk& operator=(const FileChunk&other);
+    void moveChunkData(std::vector<uint8_t>& data);
+    bool hashChunk();
+    void storeChunk(std::ofstream& storage,uint32_t capacity, uint32_t& size);
+    uint64_t getHash() const {return hash;};
     static uint32_t getChunkSize(){return chunkSize;};
     private:
     static const uint32_t chunkSize;
-
     time_point last_modified;
     uint32_t filesCount;
     uint64_t hash;
@@ -26,5 +28,4 @@ class FileChunk{
     std::vector<uint8_t> chunk_data;
 
 };
-
 #endif

@@ -19,27 +19,28 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
-    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
-
+    fs::path testPath("D:\\TechStream_12.20.024-v2.ova");
+    std::ofstream storage(STORAGE_CHAINS, std::ios::binary);
     File f;
-    std::ifstream in;
-    f.storeFile(testPath,in);
+    uint32_t storageSize = 1000;
+    f.storeFile(testPath,storage,0,storageSize);
+    //f.storeFile(testPath,in);
     //--
     filename.append(".dat");
     filePath.append(filename);
-    if(fs::exists(filePath))
-    {
-        std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
-        return;
-    }
-    std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
+    // if(fs::exists(filePath))
+    // {
+    //     std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
+    //     return;
+    // }
+    // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     
-    if(fs::exists(filePath))
-    {
-        std::cout<<"Archive created successfully"<<'\n';
+    // if(fs::exists(filePath))
+    // {
+    //     std::cout<<"Archive created successfully"<<'\n';
         
-    }
-    out.close();
+    // }
+    // out.close();
 }
 
 void StorageManager::InitializeStorage()
