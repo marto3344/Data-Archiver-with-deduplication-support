@@ -14,14 +14,11 @@ void FileChunk::deserialize(std::istream &in)
     {
         throw std::invalid_argument("Bad stream!"); 
     }
-    in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
     in.read(reinterpret_cast<char*>(&filesCount),sizeof(uint32_t));
     in.read(reinterpret_cast<char*> (&hash),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&chunk_id),sizeof(uint64_t));
-    size_t dataSize = 0;
-    in.read(reinterpret_cast<char*> (&dataSize),sizeof(size_t));
-    chunk_data.reserve(dataSize);
-    for(size_t i = 0; i < dataSize; ++i)
+  
+    for(size_t i = 0; i < FileChunk::chunkSize; ++i)
     {
         uint8_t currByte;
         in.read(reinterpret_cast<char*>(&currByte), sizeof(uint8_t));
@@ -31,13 +28,10 @@ void FileChunk::deserialize(std::istream &in)
 
 void FileChunk::serialize(std::ostream &out) const
 {
-    out.write(reinterpret_cast<const char*> (&last_modified),sizeof(time_point));
     out.write(reinterpret_cast<const char*> (&filesCount),sizeof(uint32_t));
     out.write(reinterpret_cast<const char *> (&hash),sizeof(uint64_t));
     out.write(reinterpret_cast<const char*> (&chunk_id), sizeof(uint64_t));
-    size_t dataSize = chunk_data.size();
-    out.write(reinterpret_cast<const char*>(&dataSize),sizeof(size_t));
-    for (size_t i = 0; i < dataSize; i++)
+    for (size_t i = 0; i < FileChunk::chunkSize; i++)
     {
         out.write(reinterpret_cast<const char*> (&chunk_data[i]), sizeof(uint8_t));
     }
@@ -66,58 +60,54 @@ bool FileChunk::compareChunkData(const FileChunk &other) const
     return true;
 }
 
-void FileChunk::storeChunk(std::fstream &storage,std::fstream& bucketList, uint32_t capacity, uint32_t&size, const bool  hashOnly)
+void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, uint32_t capacity, uint32_t &size, const bool hashOnly)
 {
-    if(!storage.is_open() || !bucketList.is_open())
+    if (!storage.is_open() || !bucketList.is_open())
     {
         throw std::runtime_error("Error! Can't store the chunk!");
-    }   
-    uint32_t bucketPos = hash%capacity;
-    uint32_t initialOffset = 2*sizeof(uint32_t);//size and capacity at the begin of the list file
-    bucketList.seekg(initialOffset+bucketPos*sizeof(uint64_t));
-    bucketList.seekp(initialOffset+bucketPos*sizeof(uint64_t));
-    uint64_t listHead = 0;
-    bucketList.read(reinterpret_cast<char*>(&listHead),sizeof(uint64_t));
-    if(listHead != 0)
+    }
+    uint32_t bucketPos = 2 * sizeof(uint32_t) + (hash % capacity) * sizeof(uint64_t);
+
+    bucketList.seekg(bucketPos);
+    uint64_t listHead;
+    bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
+    if (listHead != 0)
     {
-        std::cout<<"List head: "<<listHead<<'\n';
         storage.seekg(listHead);
-        storage.seekp(listHead);
-        
-        for(;;)//TODO: Add this logic in a separate function
+        for (;;)
         {
             uint64_t nextChunk;
             FileChunk currChunk;
-            if(storage.eof())
+            if (storage.eof())
                 break;
             currChunk.deserialize(storage);
-            if(currChunk.hash == this->hash)
+            if (currChunk.hash == this->hash)
             {
-                if(hashOnly)
+                if (hashOnly)
                 {
                     this->chunk_id = currChunk.chunk_id;
                     return;
                 }
-                if(compareChunkData(currChunk))
+                if (compareChunkData(currChunk))
                 {
                     this->chunk_id = currChunk.chunk_id;
                     return;
                 }
             }
-
-            storage.read(reinterpret_cast<char*>(&nextChunk),sizeof(uint64_t));
-            if(nextChunk == 0)
+            storage.read(reinterpret_cast<char *>(&nextChunk), sizeof(uint64_t));
+            if (nextChunk == 0)
                 break;
-        }//End for
-      }//End if
-        storage.clear();
-        storage.seekg(0,std::ios::end);
-        storage.seekp(0,std::ios::end);
-        uint64_t newHead = storage.tellp();
-        //std::cout<<newHead<<'\n';
-        serialize(storage);
-        storage.write(reinterpret_cast<const char*>(&listHead),sizeof(uint64_t));
-        bucketList.seekg(initialOffset+bucketPos*sizeof(uint64_t));
-        bucketList.seekp(initialOffset+bucketPos*sizeof(uint64_t));
-        bucketList.write(reinterpret_cast<const char*>(&newHead),sizeof(uint64_t));
+            storage.seekg(nextChunk);
+            //storage.seekp(nextChunk);
+        } // End for
+    } // End if
+    //Add to the begin of the chain
+ 
+    storage.seekp(0, std::ios::end);
+    uint64_t newHead = storage.tellp();
+
+    serialize(storage);
+    storage.write(reinterpret_cast<const char *>(&listHead), sizeof(uint64_t));
+    bucketList.seekp(bucketPos);
+    bucketList.write(reinterpret_cast<const char *>(&newHead), sizeof(uint64_t));
 }

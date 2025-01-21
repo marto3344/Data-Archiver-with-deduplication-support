@@ -19,7 +19,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
-    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
+    fs::path testPath("D:\\TechStream_12.20.024-v2.ova");
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
     File f;

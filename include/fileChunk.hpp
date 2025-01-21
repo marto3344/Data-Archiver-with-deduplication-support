@@ -24,7 +24,6 @@ class FileChunk{
     static uint32_t getChunkSize(){return chunkSize;};
     private:
     static const uint32_t chunkSize;
-    time_point last_modified;
     uint32_t filesCount;
     uint64_t hash;
     uint64_t chunk_id;
