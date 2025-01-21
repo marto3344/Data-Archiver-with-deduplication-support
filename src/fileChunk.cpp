@@ -1,4 +1,5 @@
 #include "fileChunk.hpp"
+#include "storageManager.hpp"
 #include<iostream>
 const uint32_t FileChunk::chunkSize = 1<<16; //64KB
 extern "C" {
@@ -60,13 +61,13 @@ bool FileChunk::compareChunkData(const FileChunk &other) const
     return true;
 }
 
-void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, uint32_t capacity, uint32_t &size, const bool hashOnly)
+void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, const bool hashOnly)
 {
     if (!storage.is_open() || !bucketList.is_open())
     {
         throw std::runtime_error("Error! Can't store the chunk!");
     }
-    uint32_t bucketPos = 2 * sizeof(uint32_t) + (hash % capacity) * sizeof(uint64_t);
+    uint32_t bucketPos = (hash % StorageManager::bucketListCapacity) * sizeof(uint64_t);
 
     bucketList.seekg(bucketPos);
     uint64_t listHead;
@@ -98,14 +99,15 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, uint
             if (nextChunk == 0)
                 break;
             storage.seekg(nextChunk);
-            //storage.seekp(nextChunk);
         } // End for
     } // End if
     //Add to the begin of the chain
  
     storage.seekp(0, std::ios::end);
     uint64_t newHead = storage.tellp();
-
+    StorageManager::totalChunks++;
+    StorageManager::bucketListSize++;
+    this->chunk_id = StorageManager::totalChunks;
     serialize(storage);
     storage.write(reinterpret_cast<const char *>(&listHead), sizeof(uint64_t));
     bucketList.seekp(bucketPos);

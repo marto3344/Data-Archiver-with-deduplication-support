@@ -1,6 +1,6 @@
 #include "file.hpp"
 #include"fileChunk.hpp"
-
+#include "storageManager.hpp"
 void File::serialize(std::ostream &out) const//TODO::Better exception handling
 {
     if(!out.good())
@@ -63,12 +63,17 @@ bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
     return false;
 }
 
-bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream &stoarge, uint32_t bucketListCapacity, uint32_t& bucketListSize, const bool hashOnly) 
+bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream &stoarge, const bool hashOnly) 
 {
-    return hashFile(file,bucketList,stoarge,bucketListCapacity,bucketListSize, hashOnly); 
+    if(hashFile(file,bucketList,stoarge, hashOnly))
+    {
+        StorageManager::totalFiles++;
+        return true;
+    };
+    return false; 
 }
 
-bool File::hashFile(const fs::path &filePath,std::fstream& bucketList, std::fstream &storage, uint32_t bucketListCapacity, uint32_t &bucketListSize, const bool hashOnly)
+bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstream& storage,  const bool hashOnly)
 {
     std::ifstream file(filePath, std::ios::binary);
     if(!file.is_open())
@@ -87,11 +92,9 @@ bool File::hashFile(const fs::path &filePath,std::fstream& bucketList, std::fstr
         file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
         curr.moveChunkData(buffer);
         curr.hashChunk();
-        curr.storeChunk(storage,bucketList,bucketListCapacity,bucketListSize, hashOnly);
+        curr.storeChunk(storage,bucketList, hashOnly);
         chunk_list.push_back({curr.getHash(),curr.getId()});
-        total_chunks++;
     }
-    std::cout<<total_chunks;
     bool result = !file.good()&&file.eof();
     file.close();
     return result;

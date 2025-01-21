@@ -8,7 +8,10 @@
 #include<fstream>
 #include "file.hpp"
 namespace fs =std::filesystem;
-
+uint64_t StorageManager::totalChunks = 0;
+uint64_t StorageManager:: totalFiles = 0;
+uint64_t StorageManager::bucketListSize = 0;
+uint64_t StorageManager::bucketListCapacity = 1<<17;//Default capacity for 1MB list size
 void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name, std::set<fs::path> &dirs)
 {
     fs::path archivesData (ARCHIVES_DATA_PATH);
@@ -19,17 +22,17 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     fs::path filePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
-    fs::path testPath("D:\\TechStream_12.20.024-v2.ova");
+    readMetadata();
+    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
     File f;
-    uint32_t storageSize = 0;
-    uint32_t storageCapacity = 1<<17;;
-    f.storeFile(testPath,bucketList,storage,storageCapacity,storageSize,hashOnly);
+    f.storeFile(testPath,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
-    //f.storeFile(testPath,in);
     //--
+    StorageStatistic();
+    writeMetadata();
     filename.append(".dat");
     filePath.append(filename);
     // if(fs::exists(filePath))
@@ -50,17 +53,58 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
 void StorageManager::InitializeStorage()
 {
     fs::path metadataPath (STORAGE_METADATA);
-
-    std::ofstream out(metadataPath, std::ios::trunc | std::ios::binary);
-    if(!out.is_open())
-        throw std::runtime_error("Cannot initialize storage information!");
-
-    uint64_t files = 0;
-    uint64_t chunks = 0;
-    out.write(reinterpret_cast<const char*> (&files),sizeof(uint64_t));
-    out.write(reinterpret_cast<const char*> (&chunks),sizeof(uint64_t));
-    out.close();
+    writeMetadata();
     initializeBucketList();
+    initializeStorageChains();
+}
+
+void StorageManager::StorageStatistic()
+{
+    std::cout<<"Total files stored in storage: "<<StorageManager::totalFiles<<'\n';
+    std::cout<<"Total chunks stored in storage: "<<StorageManager::totalChunks<<'\n';
+}
+
+void StorageManager::readMetadata()
+{
+    std::ifstream in (STORAGE_METADATA);
+    if(!in.is_open())
+    {
+        throw std::runtime_error("Cannot read storage meata data!");
+    }
+    in.read(reinterpret_cast<char*>(&StorageManager::totalFiles),sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(&StorageManager::totalChunks),sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(&StorageManager::bucketListSize),sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(&StorageManager::bucketListCapacity),sizeof(uint64_t));
+    in.close();
+}
+
+void StorageManager::writeMetadata()
+{
+    std::ofstream out(STORAGE_METADATA);
+    if(!out.is_open())
+    {
+        throw std::runtime_error("Cannot write storage meta data");
+    }
+    out.write(reinterpret_cast<const char*>(&StorageManager::totalFiles),sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(&StorageManager::totalChunks),sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(&StorageManager::bucketListSize),sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(&StorageManager::bucketListCapacity),sizeof(uint64_t));
+    out.close();
+}
+
+void StorageManager::initializeBucketList()
+{
+    std::ofstream out(STORAGE_BUCKETLIST, std::ios::trunc | std::ios::binary);
+    if(!out.is_open())
+        throw std::runtime_error("Coudn't initialize storage bucket list!");
+    uint64_t emptyBucketVal = 0;
+    for (int i = 0; i < StorageManager::bucketListCapacity; i++)
+    {
+        out.write(reinterpret_cast<const char*>(&emptyBucketVal),sizeof(uint64_t));
+    }
+    out.close();
+}
+void StorageManager::initializeStorageChains(){
     fs::path storageChainsPath (STORAGE_CHAINS);
     std::ofstream chainsFile(storageChainsPath,std::ios::trunc | std::ios::binary);
     if(!chainsFile.is_open())
@@ -71,21 +115,4 @@ void StorageManager::InitializeStorage()
         chainsFile.write(reinterpret_cast<const char*>(&dummyByte), sizeof(uint8_t));
     }
     chainsFile.close();
-}
-
-void StorageManager::initializeBucketList() 
-{
-    std::ofstream out(STORAGE_BUCKETLIST, std::ios::trunc | std::ios::binary);
-    if(!out.is_open())
-        throw std::runtime_error("Coudn't initialize storage bucket list!");
-    uint64_t emptyBucketVal = 0;
-    uint32_t size = 0;
-    uint32_t capacity = 1<<17; //This is for 1MB bucket list size
-    out.write(reinterpret_cast<const char*>(&size),sizeof(uint32_t));
-    out.write(reinterpret_cast<const char*>(&capacity),sizeof(uint32_t));
-    for (int i = 0; i < capacity; i++)
-    {
-        out.write(reinterpret_cast<const char*>(&emptyBucketVal),sizeof(uint64_t));
-    }
-    out.close();
 }

@@ -13,12 +13,12 @@ class FileChunk{
     FileChunk();
     void deserialize(std::istream& in);
     void serialize (std::ostream& out)const;
-    FileChunk& operator=(const FileChunk&other);
+    
 
     void moveChunkData(std::vector<uint8_t>& data);
     bool hashChunk();
     bool compareChunkData(const FileChunk& other) const;
-    void storeChunk(std::fstream& storage,std::fstream& bucketList, uint32_t capacity, uint32_t& size, const bool hashOnly);
+    void storeChunk(std::fstream& storage,std::fstream& bucketList, const bool hashOnly);
     uint64_t getHash() const {return hash;};
     uint64_t getId() const {return chunk_id;};
     static uint32_t getChunkSize(){return chunkSize;};
