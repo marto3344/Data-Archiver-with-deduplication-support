@@ -19,7 +19,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     {
         fs::create_directory(archivesData);
     }
-    fs::path filePath (ARCHIVES_DATA_PATH);
+    fs::path archivePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
     // --
     readMetadata();
@@ -34,8 +34,8 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     StorageStatistic();
     writeMetadata();
     filename.append(".dat");
-    filePath.append(filename);
-    // if(fs::exists(filePath))
+    archivePath.append(filename);
+    // if(ArchiveExists(archivePath))
     // {
     //     std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
     //     return;
@@ -91,6 +91,13 @@ void StorageManager::writeMetadata()
     out.write(reinterpret_cast<const char*>(&StorageManager::bucketListCapacity),sizeof(uint64_t));
     out.close();
 }
+
+bool StorageManager::ArchiveExists(const fs::path &archivePath)
+{
+    return fs::exists(archivePath);
+}
+
+
 
 void StorageManager::initializeBucketList()
 {

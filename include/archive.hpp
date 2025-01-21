@@ -7,7 +7,7 @@
 #include <chrono>
 #include<string>
 #include "file.hpp"
-
+namespace fs =std::filesystem;
 using time_point = std::chrono::system_clock::time_point;
 class Archive
 {
@@ -15,9 +15,11 @@ public:
     Archive():root(nullptr){};
     Archive (const Archive & other);
     Archive (Archive&& rhs);
+    ~Archive() noexcept{freeRec(root);};
     Archive& operator= (const Archive& other);
     Archive& operator=(Archive && rhs);
-
+    void CreateFromDirectoryList();
+    void CreateFromDirectory();
 
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
@@ -29,7 +31,9 @@ private:
         std::vector<File*>files;
         std::string dirLabel;
         std::vector<archiveNode*>children;
-    
+        archiveNode():files(std::vector<File*>()),dirLabel(""),children(std::vector<archiveNode*>()){};
+        archiveNode(const std::string dirLabel,const std::vector<File*>&files);
+        ~archiveNode() noexcept;
     };
 
     time_point date_archived;

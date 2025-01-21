@@ -6,6 +6,30 @@ Archive::Archive(const Archive &other)
     copyRec(root,other.root);
 }
 
+Archive::Archive(Archive &&rhs)
+{
+    std::swap(root,rhs.root);
+}
+
+Archive &Archive::operator=(const Archive &other)
+{
+    if(this != &other)
+    {
+        freeRec(root);
+        copyRec(root,other.root);
+    }
+    return *this;
+}
+
+Archive &Archive::operator=(Archive &&rhs)
+{
+    if(this != &rhs)
+    {
+        std::swap(root,rhs.root);
+    }
+    return *this;
+}
+
 void Archive::writeToFile(std::ofstream &out) const
 {
     if(!out.is_open())
@@ -36,10 +60,6 @@ void Archive::freeRec(archiveNode*& node)
     {
         freeRec(child);
     }
-    for(auto& file:node->files)
-    {
-        delete file;
-    }   
     delete node;
     node = nullptr;
 }
@@ -48,7 +68,9 @@ void Archive::copyRec(archiveNode *&root, const archiveNode *otherRoot)
 {
     if(!otherRoot)
         return;
-    //TODO:: Implement copying
+    root = new archiveNode(otherRoot->dirLabel,otherRoot->files);
+    root->children.reserve(otherRoot->children.size());
+
 }
 
 void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const 
@@ -104,5 +126,25 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
     {
         curr->children.push_back(nullptr);
         readRec(curr->children[i],in);
+    }
+}
+
+Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
+{
+    this->dirLabel = dirLabel;
+    this->files.reserve(files.size());
+    for (size_t i = 0; i < files.size(); i++)
+    {
+        File* f = new File(*files[i]);
+        this->files.push_back(f);
+    }
+    children = std::vector<archiveNode*>();
+}
+
+Archive::archiveNode::~archiveNode() noexcept
+{
+    for (size_t i = 0; i < files.size(); i++)
+    {
+        delete files[i];
     }
 }

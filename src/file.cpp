@@ -8,7 +8,7 @@ void File::serialize(std::ostream &out) const//TODO::Better exception handling
         throw std::invalid_argument("Error! Output stream is bad!");
     }
     out.write(reinterpret_cast<const char*>(&last_modified),sizeof(time_point));
-    out.write(reinterpret_cast<const char*>(&size),sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(&size),sizeof(uintmax_t));
     size_t nameSize = name.size();
 
     out.write(reinterpret_cast<const char*>(&nameSize),sizeof(size_t));
@@ -32,7 +32,7 @@ void File::deserialize(std::istream &in)
         throw std::invalid_argument("Error! Input stream is bad!");
     }
     in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
-    in.read(reinterpret_cast<char*>(&size),sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(&size),sizeof(uintmax_t));
     size_t nameSize = 0;
 
     in.read(reinterpret_cast<char*>(&nameSize),sizeof(size_t));
@@ -52,7 +52,7 @@ void File::deserialize(std::istream &in)
     }
 }
 
-bool File::extractFile(const fs::path &path, std::ifstream &in) const
+bool File::extractFile(const fs::path &path, std::fstream &in) const
 {
     return false;
 }
@@ -79,16 +79,16 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     if(!file.is_open())
         return false;
 
-    const uint32_t buffer_size = FileChunk::getChunkSize();
     
     uintmax_t filesize = fs::file_size(filePath);
-   
+    //Compute chunksize
+    const uint32_t buffer_size = 1<<16;
     size_t total_chunks = 0;
     
     while (file.good()&&!file.eof()) {
 
         std::vector<uint8_t> buffer(buffer_size,0x00);
-        FileChunk curr;
+        FileChunk curr(buffer_size);
         file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
         curr.moveChunkData(buffer);
         curr.hashChunk();

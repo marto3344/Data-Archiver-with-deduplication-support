@@ -1,7 +1,7 @@
 #include "fileChunk.hpp"
 #include "storageManager.hpp"
 #include<iostream>
-const uint32_t FileChunk::chunkSize = 1<<16; //64KB
+//const uint32_t FileChunk::chunkSize = 1<<16; //64KB
 extern "C" {
     #include "xxhash.h"
 }
@@ -15,11 +15,12 @@ void FileChunk::deserialize(std::istream &in)
     {
         throw std::invalid_argument("Bad stream!"); 
     }
+    in.read(reinterpret_cast<char*>(&chunkSize),sizeof(uint32_t));
     in.read(reinterpret_cast<char*>(&filesCount),sizeof(uint32_t));
     in.read(reinterpret_cast<char*> (&hash),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&chunk_id),sizeof(uint64_t));
   
-    for(size_t i = 0; i < FileChunk::chunkSize; ++i)
+    for(size_t i = 0; i < chunkSize; ++i)
     {
         uint8_t currByte;
         in.read(reinterpret_cast<char*>(&currByte), sizeof(uint8_t));
@@ -29,10 +30,11 @@ void FileChunk::deserialize(std::istream &in)
 
 void FileChunk::serialize(std::ostream &out) const
 {
+    out.write(reinterpret_cast<const char*> (&chunkSize), sizeof(uint32_t));
     out.write(reinterpret_cast<const char*> (&filesCount),sizeof(uint32_t));
     out.write(reinterpret_cast<const char *> (&hash),sizeof(uint64_t));
     out.write(reinterpret_cast<const char*> (&chunk_id), sizeof(uint64_t));
-    for (size_t i = 0; i < FileChunk::chunkSize; i++)
+    for (size_t i = 0; i < chunkSize; i++)
     {
         out.write(reinterpret_cast<const char*> (&chunk_data[i]), sizeof(uint8_t));
     }
