@@ -18,7 +18,7 @@ class FileChunk{
     
 
     void moveChunkData(std::vector<uint8_t>& data);
-    bool hashChunk();
+    void hashChunk();
     bool compareChunkData(const FileChunk& other) const;
     void storeChunk(std::fstream& storage,std::fstream& bucketList, const bool hashOnly);
     uint64_t getHash() const {return hash;};

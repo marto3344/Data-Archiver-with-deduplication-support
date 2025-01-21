@@ -9,7 +9,7 @@
 #include "archive.hpp"
 #include "file.hpp"
 namespace fs =std::filesystem;
-uint64_t StorageManager::totalChunks = 0;
+uint64_t StorageManager::lastChunkId = 0;
 uint64_t StorageManager:: totalFiles = 0;
 uint64_t StorageManager::bucketListSize = 0;
 uint64_t StorageManager::bucketListCapacity = 1<<17;//Default capacity for 1MB list size
@@ -29,7 +29,7 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     // }
     // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     readMetadata();
-    std::cout<<"Total chunks: "<<totalChunks<<'\n';
+    
     //filter overlapping directories -> ?
     //a.CreateFromDirectories();
     //a.deserialize();
@@ -71,32 +71,33 @@ void StorageManager::InitializeStorage()
 void StorageManager::StorageStatistic()
 {
     std::cout<<"Total files stored in storage: "<<StorageManager::totalFiles<<'\n';
-    std::cout<<"Total chunks stored in storage: "<<StorageManager::totalChunks<<'\n';
+    std::cout<<"Total chunks stored in storage: "<<StorageManager::bucketListSize<<'\n';
 }
 
 void StorageManager::readMetadata()
 {
-    std::ifstream in (STORAGE_METADATA);
+    std::ifstream in (STORAGE_METADATA,std::ios::binary);
     if(!in.is_open())
     {
         throw std::runtime_error("Cannot read storage meata data!");
     }
     in.read(reinterpret_cast<char*>(&StorageManager::totalFiles),sizeof(uint64_t));
-    in.read(reinterpret_cast<char*>(&StorageManager::totalChunks),sizeof(uint64_t));
+    in.read(reinterpret_cast<char*>(&StorageManager::lastChunkId),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&StorageManager::bucketListSize),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&StorageManager::bucketListCapacity),sizeof(uint64_t));
     in.close();
+    
 }
 
 void StorageManager::writeMetadata()
 {
-    std::ofstream out(STORAGE_METADATA);
+    std::ofstream out(STORAGE_METADATA, std::ios::binary);
     if(!out.is_open())
     {
         throw std::runtime_error("Cannot write storage meta data");
     }
     out.write(reinterpret_cast<const char*>(&StorageManager::totalFiles),sizeof(uint64_t));
-    out.write(reinterpret_cast<const char*>(&StorageManager::totalChunks),sizeof(uint64_t));
+    out.write(reinterpret_cast<const char*>(&StorageManager::lastChunkId),sizeof(uint64_t));
     out.write(reinterpret_cast<const char*>(&StorageManager::bucketListSize),sizeof(uint64_t));
     out.write(reinterpret_cast<const char*>(&StorageManager::bucketListCapacity),sizeof(uint64_t));
     out.close();

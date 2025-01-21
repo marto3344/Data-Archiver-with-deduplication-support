@@ -17,7 +17,7 @@ class StorageManager{
     static void UpdateArchive();
     static void InitializeStorage();
     static void StorageStatistic();
-    static uint64_t totalChunks;
+    static uint64_t lastChunkId;
     static uint64_t totalFiles;
     static uint64_t bucketListSize;
     static uint64_t bucketListCapacity;

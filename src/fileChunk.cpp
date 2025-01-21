@@ -1,7 +1,6 @@
 #include "fileChunk.hpp"
 #include "storageManager.hpp"
 #include<iostream>
-//const uint32_t FileChunk::chunkSize = 1<<16; //64KB
 extern "C" {
     #include "xxhash.h"
 }
@@ -45,10 +44,9 @@ void FileChunk::moveChunkData(std::vector<uint8_t> &data)
     chunk_data = std::move(data);
 }
 
-bool FileChunk::hashChunk()
+void FileChunk::hashChunk()
 {
     this->hash = XXH64(chunk_data.data(),FileChunk::chunkSize,0);
-    return true; 
 }
 
 bool FileChunk::compareChunkData(const FileChunk &other) const
@@ -107,9 +105,9 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, cons
  
     storage.seekp(0, std::ios::end);
     uint64_t newHead = storage.tellp();
-    StorageManager::totalChunks++;
+    StorageManager::lastChunkId++;
     StorageManager::bucketListSize++;
-    this->chunk_id = StorageManager::totalChunks;
+    this->chunk_id = StorageManager::lastChunkId;
     serialize(storage);
     storage.write(reinterpret_cast<const char *>(&listHead), sizeof(uint64_t));
     bucketList.seekp(bucketPos);

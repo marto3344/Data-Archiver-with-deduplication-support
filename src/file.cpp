@@ -83,7 +83,6 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     this->size = fs::file_size(filePath);
     //Compute chunksize
     const uint32_t buffer_size = 1<<16;
-    size_t total_chunks = 0;
     
     while (file.good()&&!file.eof()) {
 
