@@ -5,9 +5,8 @@
 
 #include<cstddef>
 #include<fstream>
-#include<chrono>
 #include<vector>
-using time_point = std::chrono::system_clock::time_point;
+
 class FileChunk{
     public:
     FileChunk();

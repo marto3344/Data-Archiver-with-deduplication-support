@@ -1,4 +1,3 @@
-#include "storageManager.hpp"
 #define ARCHIVES_DATA_PATH "../data/archives_data/"
 #define STORAGE_METADATA "../data/storage_metadata.dat"
 #define STORAGE_BUCKETLIST "../data/storage_bucket_list.dat"
@@ -6,6 +5,8 @@
 #include<filesystem>
 #include<set>
 #include<fstream>
+#include "storageManager.hpp"
+#include "archive.hpp"
 #include "file.hpp"
 namespace fs =std::filesystem;
 uint64_t StorageManager::totalChunks = 0;
@@ -28,21 +29,26 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     // }
     // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     readMetadata();
-    //Archive a;
+    std::cout<<"Total chunks: "<<totalChunks<<'\n';
     //filter overlapping directories -> ?
     //a.CreateFromDirectories();
     //a.deserialize();
     // --
-    fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
+    fs::path testPath("D:\\razni");
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
-    File f;
-    f.storeFile(testPath,bucketList,storage,hashOnly);
+    // File f;
+    // f.storeFile(testPath,bucketList,storage,hashOnly);
+
+     std::vector<fs::path> oneDirectory;
+    oneDirectory.push_back(*dirs.begin());
+    Archive a;
+    a.CreateFromDirectoryList(oneDirectory,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
     //--
-    StorageStatistic();
     writeMetadata();
+    StorageStatistic();
     filename.append(".dat");
     archivePath.append(filename);
     

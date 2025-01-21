@@ -7,7 +7,7 @@ void File::serialize(std::ostream &out) const//TODO::Better exception handling
     {
         throw std::invalid_argument("Error! Output stream is bad!");
     }
-    out.write(reinterpret_cast<const char*>(&last_modified),sizeof(time_point));
+    out.write(reinterpret_cast<const char*>(&last_modified),sizeof(fs::file_time_type));
     out.write(reinterpret_cast<const char*>(&size),sizeof(uintmax_t));
     size_t nameSize = name.size();
 
@@ -31,7 +31,7 @@ void File::deserialize(std::istream &in)
     {
         throw std::invalid_argument("Error! Input stream is bad!");
     }
-    in.read(reinterpret_cast<char*>(&last_modified),sizeof(time_point));
+    in.read(reinterpret_cast<char*>(&last_modified),sizeof(fs::file_time_type));
     in.read(reinterpret_cast<char*>(&size),sizeof(uintmax_t));
     size_t nameSize = 0;
 
@@ -79,8 +79,8 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     if(!file.is_open())
         return false;
 
-    
-    uintmax_t filesize = fs::file_size(filePath);
+    this->last_modified = fs::last_write_time(filePath);
+    this->size = fs::file_size(filePath);
     //Compute chunksize
     const uint32_t buffer_size = 1<<16;
     size_t total_chunks = 0;

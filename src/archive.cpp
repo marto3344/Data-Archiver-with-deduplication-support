@@ -30,7 +30,7 @@ Archive &Archive::operator=(Archive &&rhs)
     return *this;
 }
 
-void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths, const bool hashOnly)
+void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
 {
     root = new archiveNode();
     root->dirLabel = '/';
@@ -40,7 +40,7 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths, const bool h
         for (int i = 0; i < paths.size(); i++)
         {
             root->children.push_back(nullptr);
-            CreateFromDirectory(root->children[i],paths[i],hashOnly);
+            CreateFromDirectory(root->children[i],paths[i],bucketList,stoarge,hashOnly);
         }      
     }
     catch(const std::exception& e)
@@ -152,13 +152,55 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
     }
 }
 
-void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath, const bool hashOnly)
+void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
 {
-    return;
+    if(dirPath.empty()||!fs::exists(dirPath) || !fs::is_directory(dirPath))
+    {
+        return;
+    }
+    std::vector<fs::path>subDirectories;
+    std::vector<fs::path>files;
+    for(const auto& entry:fs::directory_iterator(dirPath))
+    {
+        if(fs::is_regular_file(entry))
+        {
+            files.push_back(entry);
+        }
+        else if (fs::is_directory(entry))
+        {
+            subDirectories.push_back(entry);
+        }
+    }
+    curr = new archiveNode();
+    curr->dirLabel = dirPath.string();
+    curr->last_modified = fs::last_write_time(dirPath);
+    curr->files = std::vector<File*>(files.size(),nullptr);
+    for(int i =0;i<files.size(); i++)
+    {
+        File* f = new File();
+        if(f->storeFile(files[i],bucketList,stoarge,hashOnly))
+        {
+            curr->files.push_back(f);
+        }
+        else{//TODO: Better exception safety;
+            delete f;
+            std::string message ="Error! Can't store the file: ";
+            message.append(files[i].string());
+            message+='\n';
+            throw std::runtime_error(message);
+        }
+    }
+    curr->children= std::vector<archiveNode*>(subDirectories.size(),nullptr);
+    for (int i = 0; i < subDirectories.size(); i++)
+    {
+        CreateFromDirectory(curr->children[i],subDirectories[i],bucketList,stoarge,hashOnly);
+    }
+    
 }
 
 Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
 {
+    
     this->dirLabel = dirLabel;
     this->files.reserve(files.size());
     for (size_t i = 0; i < files.size(); i++)

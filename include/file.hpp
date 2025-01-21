@@ -8,11 +8,10 @@
 #include<fstream>
 #include<cstddef>
 #include<string>
-#include <chrono>
 #include<vector>
 
 namespace fs = std::filesystem;
-using time_point = std::chrono::system_clock::time_point;
+
 class File{
     public:
     File() = default;
@@ -26,7 +25,7 @@ class File{
     
 
     private:
-    time_point last_modified;
+    fs::file_time_type last_modified;
     uintmax_t size;
     std::string name;
     std::vector<std::pair<uint64_t,uint64_t>>chunk_list;//{hash_value, chunk_id}
