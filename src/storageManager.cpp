@@ -21,8 +21,18 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     }
     fs::path archivePath (ARCHIVES_DATA_PATH);
     std::string filename = name;
-    // --
+    // if(ArchiveExists(archivePath))
+    // {
+    //     std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
+    //     return;
+    // }
+    // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     readMetadata();
+    //Archive a;
+    //filter overlapping directories -> ?
+    //a.CreateFromDirectories();
+    //a.deserialize();
+    // --
     fs::path testPath("D:\\razni\\hash-test\\18_Martin_Stoyanov_12B.pptx");
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
@@ -35,12 +45,6 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     writeMetadata();
     filename.append(".dat");
     archivePath.append(filename);
-    // if(ArchiveExists(archivePath))
-    // {
-    //     std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
-    //     return;
-    // }
-    // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     
     // if(fs::exists(filePath))
     // {

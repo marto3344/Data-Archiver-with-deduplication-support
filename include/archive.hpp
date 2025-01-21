@@ -18,8 +18,7 @@ public:
     ~Archive() noexcept{freeRec(root);};
     Archive& operator= (const Archive& other);
     Archive& operator=(Archive && rhs);
-    void CreateFromDirectoryList();
-    void CreateFromDirectory();
+    void CreateFromDirectoryList(std::vector<fs::path>& paths,const bool hashOnly);
 
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
@@ -43,6 +42,7 @@ private:
     void copyRec (archiveNode*& root, const archiveNode* otherRoot);
     void writeRec(const archiveNode* curr, std::ofstream& out) const;
     void readRec(archiveNode*& curr,std::ifstream& in);
+    void CreateFromDirectory(archiveNode*& curr,fs::path& dirPath, const bool hashOnly);
 };
 
 #endif

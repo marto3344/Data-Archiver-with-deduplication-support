@@ -30,6 +30,29 @@ Archive &Archive::operator=(Archive &&rhs)
     return *this;
 }
 
+void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths, const bool hashOnly)
+{
+    root = new archiveNode();
+    root->dirLabel = '/';
+    root->children.reserve(paths.size());
+    try
+    {
+        for (int i = 0; i < paths.size(); i++)
+        {
+            root->children.push_back(nullptr);
+            CreateFromDirectory(root->children[i],paths[i],hashOnly);
+        }      
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    catch(...)
+    {
+        std::cout<<"Somethig went wrong creting the archives";
+    }
+}
+
 void Archive::writeToFile(std::ofstream &out) const
 {
     if(!out.is_open())
@@ -127,6 +150,11 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
         curr->children.push_back(nullptr);
         readRec(curr->children[i],in);
     }
+}
+
+void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath, const bool hashOnly)
+{
+    return;
 }
 
 Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
