@@ -22,6 +22,7 @@ public:
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
+    void dfsPrint() const;
 private:
     struct archiveNode
     {
@@ -40,6 +41,7 @@ private:
     fs::file_time_type date_archived;
     archiveNode* root;
     std::string name;
+    void dfsRec(const archiveNode* root) const;
     void freeRec(archiveNode*&);
     void copyRec (archiveNode*& root, const archiveNode* otherRoot);
     void writeRec(const archiveNode* curr, std::ofstream& out) const;

@@ -73,12 +73,17 @@ bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream
     return false; 
 }
 
+void File::setName(const std::string &filename)
+{
+    name = filename;
+}
+
 bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstream& storage,  const bool hashOnly)
 {
     std::ifstream file(filePath, std::ios::binary);
     if(!file.is_open())
         return false;
-
+    this->name = filePath.filename().string();
     this->last_modified = fs::last_write_time(filePath);
     this->size = fs::file_size(filePath);
     //Compute chunksize

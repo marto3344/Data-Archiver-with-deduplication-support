@@ -33,7 +33,7 @@ Archive &Archive::operator=(Archive &&rhs)
 void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
 {
     root = new archiveNode();
-    root->dirLabel = '/';
+    root->dirLabel = '\\';
     root->children.reserve(paths.size());
     try
     {
@@ -73,7 +73,34 @@ void Archive::readFromFile(std::ifstream &in)
     readRec(root,in);
 }
 
-void Archive::freeRec(archiveNode*& node)
+void Archive::dfsPrint() const
+{
+    dfsRec(root);
+}
+
+void Archive::dfsRec(const archiveNode *root) const
+{
+    if(!root)
+        return;
+    std::cout<<root->dirLabel<<"\n";
+    std::cout<<"Files vec size: "<<root->files.size()<<'\n';
+    for (int i = 0; i <root->files.size() ; i++)
+    {
+        if(root->files[i])
+        {
+            std::cout<<root->files[i]->getName()<<' ';
+        }
+    }
+    for (size_t i = 0; i < root->children.size(); i++)
+    {
+        std::cout<<'\n';
+        dfsRec(root->children[i]);
+    }
+    
+    
+}
+
+void Archive::freeRec(archiveNode *&node)
 {
     if(!node)
     {
@@ -100,29 +127,22 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
 {
     if(!curr)
         return;
+    
     size_t filesSize =curr->files.size();
     out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
     for (size_t i = 0; i < filesSize; i++)
     {
-        curr->files[i]->serialize(out);
+        std::cout<<"Serializing: "<<curr->files[i]->getName()<<"\n";
+        curr->files[i]->serialize(out);    
     }
     size_t LabelSize =curr->dirLabel.size();
     out.write(reinterpret_cast<const char*>(&LabelSize),sizeof(size_t));
     out.write(reinterpret_cast<const char*>(&curr->dirLabel),LabelSize);
-    size_t childrenSize = 0;
-    std::vector<int>childrenIndexes;
-    for (int i = 0; i < curr->children.size(); i++)
-    {
-        if(curr->children[i])
-        {
-            childrenIndexes.push_back(i);
-            childrenSize++;
-        }
-    }  
+    size_t childrenSize = curr->children.size();
     out.write(reinterpret_cast<const char*>(&childrenSize), sizeof(size_t));
     for (size_t i = 0; i < childrenSize; i++)
     {
-        writeRec(curr->children[childrenIndexes[i]],out);
+        writeRec(curr->children[i],out);
     }
 }
 
@@ -159,12 +179,12 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
         return;
     }
     std::vector<fs::path>subDirectories;
-    std::vector<fs::path>files;
+    std::vector<fs::path>dirFiles;
     for(const auto& entry:fs::directory_iterator(dirPath))
     {
         if(fs::is_regular_file(entry))
         {
-            files.push_back(entry);
+            dirFiles.push_back(entry);
         }
         else if (fs::is_directory(entry))
         {
@@ -174,18 +194,19 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
     curr = new archiveNode();
     curr->dirLabel = dirPath.string();
     curr->last_modified = fs::last_write_time(dirPath);
-    curr->files = std::vector<File*>(files.size(),nullptr);
-    for(int i =0;i<files.size(); i++)
+    //std::cout<<curr->dirLabel<<' '<<"Files size: "<<dirFiles.size()<<' '<<"Subdir size: "<<subDirectories.size()<<'\n';
+    curr->files.reserve(dirFiles.size());
+    for(int i =0;i<dirFiles.size(); i++)
     {
         File* f = new File();
-        if(f->storeFile(files[i],bucketList,stoarge,hashOnly))
+        if(f->storeFile(dirFiles[i],bucketList,stoarge,hashOnly))
         {
             curr->files.push_back(f);
         }
         else{//TODO: Better exception safety;
             delete f;
             std::string message ="Error! Can't store the file: ";
-            message.append(files[i].string());
+            message.append(dirFiles[i].string());
             message+='\n';
             throw std::runtime_error(message);
         }

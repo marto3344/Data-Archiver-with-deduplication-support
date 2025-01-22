@@ -22,7 +22,8 @@ class File{
     bool extractFile(const fs::path& path, std::fstream& in) const;
     bool updateFile(const fs::path& targerFile, std::ifstream& in);
     bool storeFile (const fs::path& file,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly );
-    
+    std::string getName() const {return name;};
+    void setName(const std::string& filename);
 
     private:
     fs::file_time_type last_modified;

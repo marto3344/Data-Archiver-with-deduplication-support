@@ -15,49 +15,37 @@ uint64_t StorageManager::bucketListSize = 0;
 uint64_t StorageManager::bucketListCapacity = 1<<17;//Default capacity for 1MB list size
 void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name, std::set<fs::path> &dirs)
 {
-    fs::path archivesData (ARCHIVES_DATA_PATH);
-    if(!fs::exists(archivesData))
-    {
-        fs::create_directory(archivesData);
-    }
-    fs::path archivePath (ARCHIVES_DATA_PATH);
-    std::string filename = name;
-    // if(ArchiveExists(archivePath))
-    // {
-    //     std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
-    //     return;
-    // }
-    // std::ofstream out (filePath.string(),std::ios::binary | std::ios::app);
     readMetadata();
+    std::string filename = name;
+    filename.append(".dat");
+    fs::path archivePath (ARCHIVES_DATA_PATH);
+    archivePath.append(filename);
     
-    //filter overlapping directories -> ?
-    //a.CreateFromDirectories();
-    //a.deserialize();
-    // --
-    fs::path testPath("D:\\razni");
+    if(ArchiveExists(archivePath))
+    {
+        std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
+        return;
+    }
+    std::ofstream out (archivePath.string(),std::ios::binary);
+    if(!out.is_open())
+    {
+        std::cout<<"Cannot create the archive!";
+        return;
+    }
+
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
-    // File f;
-    // f.storeFile(testPath,bucketList,storage,hashOnly);
-
-     std::vector<fs::path> oneDirectory;
+    std::vector<fs::path> oneDirectory;
     oneDirectory.push_back(*dirs.begin());
     Archive a;
     a.CreateFromDirectoryList(oneDirectory,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
-    //--
+    //a.dfsPrint();
     writeMetadata();
+    a.writeToFile(out);
+    out.close();
     StorageStatistic();
-    filename.append(".dat");
-    archivePath.append(filename);
-    
-    // if(fs::exists(filePath))
-    // {
-    //     std::cout<<"Archive created successfully"<<'\n';
-        
-    // }
-    // out.close();
 }
 
 void StorageManager::InitializeStorage()
