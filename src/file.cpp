@@ -1,7 +1,7 @@
 #include "file.hpp"
 #include"fileChunk.hpp"
 #include "storageManager.hpp"
-void File::serialize(std::ostream &out) const//TODO::Better exception handling
+void File::serialize(std::ostream &out) const
 {
     if(!out.good())
     {
@@ -12,7 +12,7 @@ void File::serialize(std::ostream &out) const//TODO::Better exception handling
     size_t nameSize = name.size();
 
     out.write(reinterpret_cast<const char*>(&nameSize),sizeof(size_t));
-    out.write(reinterpret_cast<const char*>(&name),sizeof(nameSize));
+    out.write(reinterpret_cast<const char*>(name.data()),nameSize);
 
     size_t dataSize = chunk_list.size();
     out.write(reinterpret_cast<const char*>(&dataSize),sizeof(size_t));
@@ -36,8 +36,8 @@ void File::deserialize(std::istream &in)
     size_t nameSize = 0;
 
     in.read(reinterpret_cast<char*>(&nameSize),sizeof(size_t));
-    name.reserve(nameSize);
-    in.read(reinterpret_cast<char*>(&name),sizeof(nameSize));
+    name = std::string(nameSize,'\0');
+    in.read(reinterpret_cast<char*>(name.data()),nameSize);
 
     size_t dataSize = 0;
     in.read(reinterpret_cast<char*>(&dataSize),sizeof(size_t));

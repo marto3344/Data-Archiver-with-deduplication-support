@@ -18,7 +18,7 @@ void FileChunk::deserialize(std::istream &in)
     in.read(reinterpret_cast<char*>(&filesCount),sizeof(uint32_t));
     in.read(reinterpret_cast<char*> (&hash),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&chunk_id),sizeof(uint64_t));
-  
+    chunk_data.reserve(chunkSize);
     for(size_t i = 0; i < chunkSize; ++i)
     {
         uint8_t currByte;

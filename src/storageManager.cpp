@@ -20,7 +20,13 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     filename.append(".dat");
     fs::path archivePath (ARCHIVES_DATA_PATH);
     archivePath.append(filename);
-    
+    Archive a;
+    //--Fast deserialization test--
+    // std::ifstream in (archivePath.string(),std::ios::binary);
+    // a.readFromFile(in);
+    // a.dfsPrint();
+    // in.close();
+    //return;
     if(ArchiveExists(archivePath))
     {
         std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
@@ -32,16 +38,15 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
         std::cout<<"Cannot create the archive!";
         return;
     }
-
+  
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
     std::vector<fs::path> oneDirectory;
     oneDirectory.push_back(*dirs.begin());
-    Archive a;
     a.CreateFromDirectoryList(oneDirectory,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
-    //a.dfsPrint();
+    a.dfsPrint();
     writeMetadata();
     a.writeToFile(out);
     out.close();

@@ -120,7 +120,11 @@ void Archive::copyRec(archiveNode *&root, const archiveNode *otherRoot)
         return;
     root = new archiveNode(otherRoot->dirLabel,otherRoot->files);
     root->children.reserve(otherRoot->children.size());
-
+    for (int i = 0; i < otherRoot->children.size(); i++)
+    {
+        root->children.push_back(nullptr);
+        copyRec(root->children[i],otherRoot->children[i]);
+    }  
 }
 
 void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const 
@@ -137,7 +141,7 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
     }
     size_t LabelSize =curr->dirLabel.size();
     out.write(reinterpret_cast<const char*>(&LabelSize),sizeof(size_t));
-    out.write(reinterpret_cast<const char*>(&curr->dirLabel),LabelSize);
+    out.write(reinterpret_cast<const char*>(curr->dirLabel.data()),LabelSize);
     size_t childrenSize = curr->children.size();
     out.write(reinterpret_cast<const char*>(&childrenSize), sizeof(size_t));
     for (size_t i = 0; i < childrenSize; i++)
@@ -148,20 +152,22 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
 
 void Archive::readRec(archiveNode *&curr, std::ifstream &in)
 {
-    root = new archiveNode();
+    if(in.eof()||!in.good())
+        return;
+    curr = new archiveNode();
     size_t filesSize = 0;
     in.read(reinterpret_cast<char*>(&filesSize),sizeof(size_t));
-    root->files.reserve(filesSize);
+    curr->files.reserve(filesSize);
     for (int i = 0; i < filesSize; i++)
     {
         File* f = new File;
         f->deserialize(in);
-        root->files.push_back(f);
+        curr->files.push_back(f);
     }
     size_t labelSize = 0;
     in.read(reinterpret_cast<char*>(&labelSize), sizeof(size_t));
-    curr->dirLabel.reserve(labelSize);
-    in.read(reinterpret_cast<char*>(&curr->dirLabel),sizeof(labelSize));
+    curr->dirLabel = std::string(labelSize, '\0');
+    in.read(reinterpret_cast<char*>(curr->dirLabel.data()),labelSize);
     size_t childrenSize = 0;
     in.read(reinterpret_cast<char*>(&childrenSize),sizeof(size_t));
     curr->children.reserve(childrenSize);
