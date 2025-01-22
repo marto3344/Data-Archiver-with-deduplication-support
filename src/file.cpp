@@ -141,7 +141,9 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
         std::cout<<message<<'\n';
         return false;
     }
-    return file.good();
+    bool result = file.good();
+    file.close();
+    return result;
 
 }
 
