@@ -39,6 +39,13 @@ void FileChunk::serialize(std::ostream &out) const
     }
 }
 
+void FileChunk::writeChunkData(std::ofstream &out,uintmax_t size) const
+{
+    if(!out.is_open()||!out.good())
+        return;
+    out.write(reinterpret_cast<const char*>(chunk_data.data()),size);
+}
+
 void FileChunk::moveChunkData(std::vector<uint8_t> &data)
 {
     chunk_data = std::move(data);

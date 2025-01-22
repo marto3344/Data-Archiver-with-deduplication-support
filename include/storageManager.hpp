@@ -12,7 +12,7 @@ class StorageManager{
     public:
     StorageManager() = delete;
     static void CreateArchive(const bool& hashOnly,const std::string& name,std::set<fs::path>& dirs);
-    static void ExtraxtArchive();
+    static void ExtraxtArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
     static void CheckArchive();
     static void UpdateArchive();
     static void InitializeStorage();

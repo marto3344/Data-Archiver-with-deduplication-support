@@ -52,9 +52,40 @@ void File::deserialize(std::istream &in)
     }
 }
 
-bool File::extractFile(const fs::path &path, std::fstream &in) const
+bool File::extractFile(std::ofstream& file,std::fstream& storage,std::fstream& bucketList) const
 {
-    return false;
+    if(!file.is_open()||!storage.is_open()||!bucketList.is_open())
+        return false;
+    uintmax_t bytesWritten = 0;
+    for (int i = 0; i < chunk_list.size(); i++)
+    {
+        FileChunk curr;
+        uint32_t bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
+        bucketList.seekg(bucketPos);
+        uint64_t listHead;
+        bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
+        if (listHead != 0)
+        {
+            storage.seekg(listHead);
+            for (;;)
+            {
+                uint64_t nextChunk;
+                if (storage.eof())
+                    break;
+                curr.deserialize(storage);
+                if (curr.getId() == chunk_list[i].second)
+                    break;
+                storage.read(reinterpret_cast<char *>(&nextChunk), sizeof(uint64_t));
+                if (nextChunk == 0)
+                    break;
+                storage.seekg(nextChunk);
+            } 
+       } // End if
+        uintmax_t chunkSize = std::min(size - bytesWritten, (uintmax_t)curr.getChunkSize());
+        curr.writeChunkData(file, chunkSize);
+        bytesWritten += chunkSize;
+    } 
+    return true;
 }
 
 bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
@@ -86,22 +117,47 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     this->name = filePath.filename().string();
     this->last_modified = fs::last_write_time(filePath);
     this->size = fs::file_size(filePath);
-    //Compute chunksize
-    const uint32_t buffer_size = 1<<16;
+    uint64_t avgChunkSize = determineChunkSize();
+    uintmax_t bytesRead = 0;
     
-    while (file.good()&&!file.eof()) {
-
-        std::vector<uint8_t> buffer(buffer_size,0x00);
-        FileChunk curr(buffer_size);
-        file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
+    uintmax_t chunkSize;
+    
+    while (bytesRead<size && file.good()) {
+        chunkSize = std::min((size - bytesRead),avgChunkSize);
+        std::vector<uint8_t> buffer(chunkSize,0x00);
+        FileChunk curr((uint32_t)chunkSize);
+        file.read(reinterpret_cast<char *>(buffer.data()),chunkSize);
         curr.moveChunkData(buffer);
         curr.hashChunk();
         curr.storeChunk(storage,bucketList, hashOnly);
         chunk_list.push_back({curr.getHash(),curr.getId()});
+        bytesRead +=chunkSize;
     }
-    bool result = !file.good()&&file.eof();
-    file.close();
-    return result;
+    if(bytesRead < size)
+    {
+        file.close();
+        std::string message = "Something went wrong during file read! File name: ";
+        message.append(name);
+        std::cout<<message<<'\n';
+        return false;
+    }
+    return file.good();
 
 }
 
+uint32_t File::determineChunkSize()
+{
+    if(size<=(1<<16))//<= 64KB
+    {
+        return (uint32_t)size;
+    }
+    else if(size > (1<<16) && size <= (1<<20))//>64 KB && <= 1MB
+    {
+        return (1<<16);
+    }
+    else if(size>(1<<20) && size <= (1<<29))//> 1MB &&  <= 512 MB
+    {
+        return (1<<19); //512 KB
+    }
+    return (1<<22); //4MB
+}

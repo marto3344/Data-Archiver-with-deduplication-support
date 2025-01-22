@@ -33,7 +33,7 @@ Archive &Archive::operator=(Archive &&rhs)
 void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
 {
     root = new archiveNode();
-    root->dirLabel = '\\';
+    root->dirLabel = "";
     root->children.reserve(paths.size());
     try
     {
@@ -51,6 +51,26 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     {
         std::cout<<"Somethig went wrong creting the archives";
     }
+}
+
+void Archive::ExtractArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream &bucketList, std::fstream &stoarge) const
+{
+    if(fs::exists(targetPath))
+    {
+        fs::create_directory(targetPath);
+    }
+    if(archivePath.empty())
+    {
+        for (int i = 0; i < root->children.size(); i++)
+        {
+            extractRec(root,targetPath,stoarge,bucketList);
+        }
+    }
+    else{
+        std::vector<const archiveNode*> nodes;
+        //TODO: Find roots that responds to the archive path
+    }
+    
 }
 
 void Archive::writeToFile(std::ofstream &out) const
@@ -82,8 +102,8 @@ void Archive::dfsRec(const archiveNode *root) const
 {
     if(!root)
         return;
-    std::cout<<root->dirLabel<<"\n";
-    std::cout<<"Files vec size: "<<root->files.size()<<'\n';
+    //std::cout<<root->dirLabel<<"\n";
+    //std::cout<<"Files vec size: "<<root->files.size()<<'\n';
     for (int i = 0; i <root->files.size() ; i++)
     {
         if(root->files[i])
@@ -136,7 +156,6 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
     out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
     for (size_t i = 0; i < filesSize; i++)
     {
-        std::cout<<"Serializing: "<<curr->files[i]->getName()<<"\n";
         curr->files[i]->serialize(out);    
     }
     size_t LabelSize =curr->dirLabel.size();
@@ -222,6 +241,37 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
     {
         CreateFromDirectory(curr->children[i],subDirectories[i],bucketList,stoarge,hashOnly);
     }
+    
+}
+
+void Archive::extractRec(const archiveNode *curr, const fs::path& targetPath, std::fstream& storage, std::fstream& bucketList) const
+{
+    if(!curr)
+        return;
+    fs::path currTargetDir = targetPath;
+    currTargetDir.append(fs::path(curr->dirLabel).filename().string());
+    if(!fs::exists(currTargetDir))
+    {
+        fs::create_directory(currTargetDir);
+    }
+    for (int i = 0; i<curr->files.size(); i++)
+    {
+        fs::path filePath = currTargetDir;
+        filePath.append(curr->files[i]->getName());
+        std::ofstream file (filePath,std::ios::binary);
+        if(!file.is_open())
+        {
+            std::cout<<"Coudn't extract file: "<<curr->files[i]->getName()<<'\n';
+            return;
+        }
+        curr->files[i]->extractFile(file,storage,bucketList);
+        file.close();
+    }
+    for(int i = 0; i < curr->children.size();i++)
+    {
+        extractRec(curr->children[i],currTargetDir,storage,bucketList);
+    }
+
     
 }
 

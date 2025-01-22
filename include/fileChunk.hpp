@@ -15,7 +15,7 @@ class FileChunk{
     };
     void deserialize(std::istream& in);
     void serialize (std::ostream& out)const;
-    
+    void writeChunkData(std::ofstream& out, uintmax_t size) const;
 
     void moveChunkData(std::vector<uint8_t>& data);
     void hashChunk();

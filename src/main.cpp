@@ -86,6 +86,36 @@ int main(int argc, const char * argv[])
     }
     else if (commandNumber == 2)//Extract
     {
+        if(argc<3)
+        {
+            std::cout<<"You should provide archive name than target path!\n";
+            return -1;
+        }
+        std::string name = argv[2];
+        if(argc < 4){
+            std::cout<<"You should provide target path!";
+            return -1;
+        }
+        fs::path targetPath(fs::canonical(argv[3]));
+        fs::path archivePath;
+        if(argc > 4)
+        {
+            archivePath = fs::path(argv[4]);
+        }
+        try
+        {
+            StorageManager::ExtraxtArchive(name,targetPath,archivePath);
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+            return -1;
+        }
+        catch(...)
+        {
+            std::cout<<"Something went wrong!Please try again!\n";
+            return -1;
+        }
         
     }
     else if (commandNumber == 3)// Help

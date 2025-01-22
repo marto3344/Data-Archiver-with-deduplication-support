@@ -46,11 +46,66 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     a.CreateFromDirectoryList(oneDirectory,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
-    a.dfsPrint();
     writeMetadata();
     a.writeToFile(out);
     out.close();
     StorageStatistic();
+}
+
+void StorageManager::ExtraxtArchive(const std::string &name, const fs::path &targetPath, const fs::path &archivePath)
+{
+    std::string filename = name;
+    filename.append(".dat");
+    fs::path archive(ARCHIVES_DATA_PATH);
+    archive.append(filename);
+    if(!ArchiveExists(archive))
+    {
+        std::cout<<"Archive with that name was not found in storage!\n";
+        return;
+    }
+    std::ifstream in(archive,std::ios::binary);
+    if(!in.is_open())
+    {
+        std::cout<<"Could not open the archive inforamtion file!\n";
+        return;
+    }
+    Archive a;
+    try
+    {
+        a.readFromFile(in);    
+    }
+    catch(const std::exception& e)
+    {
+        if(in.is_open())
+            in.close();
+        std::cerr << e.what() << '\n';
+    }
+    catch(...)
+    {
+        std::cout<<"Something went wrong during archive fetch!\n";
+        if(in.is_open())
+            in.close();
+    }
+    std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
+    std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
+    try
+    {
+       a.ExtractArchive(targetPath,archivePath,bucketList,storage);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        storage.close();
+        bucketList.close();
+    }
+    catch(...)
+    {
+        std::cout<<"Unlucky :(\n";
+        storage.close();
+        bucketList.close();
+    }
+    
+
 }
 
 void StorageManager::InitializeStorage()
