@@ -2,6 +2,7 @@
 #define STORAGE_METADATA "../data/storage_metadata.dat"
 #define STORAGE_BUCKETLIST "../data/storage_bucket_list.dat"
 #define STORAGE_CHAINS "../data/storage.dat"
+#define DATA_PATH "../data"
 #include<filesystem>
 #include<set>
 #include<fstream>
@@ -13,7 +14,7 @@ uint64_t StorageManager::lastChunkId = 0;
 uint64_t StorageManager:: totalFiles = 0;
 uint64_t StorageManager::bucketListSize = 0;
 uint64_t StorageManager::bucketListCapacity = 1<<17;//Default capacity for 1MB list size
-void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name, std::set<fs::path> &dirs)
+void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name,const std::set<fs::path> &dirs)
 {
     readMetadata();
     std::string filename = name;
@@ -35,9 +36,9 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
   
     std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
     std::fstream bucketList (STORAGE_BUCKETLIST,std::ios::in | std::ios::out | std::ios::binary);
-    std::vector<fs::path> oneDirectory;
-    oneDirectory.push_back(*dirs.begin());
-    a.CreateFromDirectoryList(oneDirectory,bucketList,storage,hashOnly);
+    std::vector<fs::path> filteredDirectories;
+    removeOverlappingPaths(filteredDirectories,dirs);
+    a.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);
     storage.close();
     bucketList.close();
     writeMetadata();
@@ -104,6 +105,16 @@ void StorageManager::ExtraxtArchive(const std::string &name, const fs::path &tar
 
 void StorageManager::InitializeStorage()
 {
+    fs::path dataFolder (DATA_PATH);
+    if(!fs::exists(dataFolder))
+    {
+        fs::create_directory(dataFolder);
+    }
+    fs::path archivesData(ARCHIVES_DATA_PATH);
+     if(!fs::exists(archivesData))
+    {
+        fs::create_directory(archivesData);
+    }
     fs::path metadataPath (STORAGE_METADATA);
     writeMetadata();
     initializeBucketList();
@@ -116,7 +127,25 @@ void StorageManager::StorageStatistic()
     std::cout<<"Total chunks stored in storage: "<<StorageManager::bucketListSize<<'\n';
 }
 
-void StorageManager::removeOverlappingPaths(std::vector<fs::path> &filteredPaths, std::set<fs::path> &paths)
+void StorageManager::DeleteStorage()
+{
+  
+    fs::path archivesData(ARCHIVES_DATA_PATH);
+    if(fs::exists(archivesData));
+    {
+        for (const auto& entry:fs::directory_iterator(archivesData))
+        {
+            if(fs::is_regular_file(entry.path()))
+            {
+                fs::remove(entry.path());
+            }
+        }
+        
+    }
+    InitializeStorage();
+}
+
+void StorageManager::removeOverlappingPaths(std::vector<fs::path> &filteredPaths,const std::set<fs::path> &paths)
 {
     for(const fs::path& p:paths)
     {

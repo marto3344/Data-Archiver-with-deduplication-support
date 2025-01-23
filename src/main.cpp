@@ -44,8 +44,8 @@ int main(int argc, const char * argv[])
         std::cout<<"Error! Empty argument list! Pass help as an argument to see the available commands!\n";
         return -1;
     }
-    const size_t COMMANDS_COUNT = 6;
-    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update","initialize"};
+    const size_t COMMANDS_COUNT = 7;
+    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update","initialize","delete"};
 
     int commandNumber = findCommand(commandsList,COMMANDS_COUNT, argv[1]);
     if(commandNumber == -1)
@@ -95,6 +95,40 @@ int main(int argc, const char * argv[])
         if(argc < 4){
             std::cout<<"You should provide target path!";
             return -1;
+        }
+        if(!fs::exists(argv[3]))
+        {
+            std::cout<< "The path you provided does not exists! Do you want to create a dir in the target path? (Type y/n)\n";
+            char responce;
+            std::cin>>responce;
+            if(responce=='y')
+            {
+                try
+                {          
+                    fs::create_directory(argv[3]);
+                    if(fs::exists(argv[3]))
+                        std::cout<<"Directory created successfully! Now extracting ... \n";
+                    else{
+                        std::cout<<"Somethig went wrong during directory creation! Please try again! \n";
+                        return -1;
+                    }
+                }
+                catch(...)
+                {
+                    std::cout<<"Somethig went wrong during directory creation! Please try again! \n";
+                    return -1;
+                }
+                
+            }
+            else if (responce=='n')
+            {
+                return 0;
+            }
+            else{
+                std::cout<<"Error! Unrecognized symbol: "<<responce<<'\n';
+                return -1;
+            }
+
         }
         fs::path targetPath(fs::canonical(argv[3]));
         fs::path archivePath;
@@ -147,30 +181,58 @@ int main(int argc, const char * argv[])
         }
         
     }
-    else if (commandNumber== 5)
+    else if (commandNumber== 5)//Initialize
     {
         try
         {
             std::cout<<"Warning! If you run this command all the previous data will be lost! Are you sure? (Type y/n)\n";
-            char c;
-            std::cin>>c;
-            if(c=='y')
+            char responce;
+            std::cin>>responce;
+            if(responce=='y')
             {
                 StorageManager::InitializeStorage();
                 std::cout<<"Storage initialized successfully!";
             }
-            else if (c=='n')
+            else if (responce=='n')
             {
                 return 0;
             }
             else{
-                std::cout<<"Error! Unrecognized symbol: "<<c<<'\n';
+                std::cout<<"Error! Unrecognized symbol: "<<responce<<'\n';
                 return -1;
             }
         }
         catch(const std::exception& e)
         {
             std::cerr << e.what() << '\n';
+            return -1;
+        }
+        
+    }
+    else if (commandNumber == 6)//Delete
+    {
+        try
+        {
+            std::cout<<"Warning! If you run this command all the storage data will be deleted lost! Are you sure? (Type y/n)\n";
+            char responce;
+            std::cin>>responce;
+            if(responce=='y')
+            {
+               StorageManager::DeleteStorage();
+                std::cout<<"Storage deleted successfully!";
+            }
+            else if (responce=='n')
+            {
+                return 0;
+            }
+            else{
+                std::cout<<"Error! Unrecognized symbol: "<<responce<<'\n';
+                return -1;
+            }
+        }
+        catch(...)
+        {
+            std::cout<<"Error! Something unexpected happened! Please try again!\n";
             return -1;
         }
         
