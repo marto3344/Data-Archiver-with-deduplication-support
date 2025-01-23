@@ -16,6 +16,11 @@ uint64_t StorageManager::bucketListSize = 0;
 uint64_t StorageManager::bucketListCapacity = 1<<17;//Default capacity for 1MB list size
 void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name,const std::set<fs::path> &dirs)
 {
+    if(!checkStorageSetup())
+    {
+        std::cout<<"Run command \'initialize\' to create all necessary files!\n";
+        return;
+    }
     readMetadata();
     std::string filename = name;
     filename.append(".dat");
@@ -49,6 +54,11 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
 
 void StorageManager::ExtraxtArchive(const std::string &name, const fs::path &targetPath, const fs::path &archivePath)
 {
+    if(!checkStorageSetup())
+    {
+        std::cout<<"Run command \'initialize\' to create all necessary files!\n";
+        return;
+    }
     std::string filename = name;
     filename.append(".dat");
     fs::path archive(ARCHIVES_DATA_PATH);
@@ -196,7 +206,35 @@ bool StorageManager::ArchiveExists(const fs::path &archivePath)
     return fs::exists(archivePath);
 }
 
-
+bool StorageManager::checkStorageSetup()
+{
+    if(!fs::exists(DATA_PATH))
+    {
+        std::cout<<"data directory is missing!\n";
+        return false;
+    }
+    if(!fs::exists(ARCHIVES_DATA_PATH))
+    {
+        std::cout<<"archives_data directory is missing!\n";
+        return false;
+    }
+    if(!fs::exists(STORAGE_BUCKETLIST))
+    {
+        std::cout<<"data/storage_bucket_list.dat file is missing!\n";
+        return false;
+    }
+    if(!fs::exists(STORAGE_CHAINS))
+    {
+        std::cout<<"data/storage.dat file is missing!\n";
+        return false;
+    }
+    if(!fs::exists(STORAGE_METADATA))
+    {
+        std::cout<<"data/storage_metadata.dat file is missing!\n";
+        return false;
+    }
+    return true;
+}
 
 void StorageManager::initializeBucketList()
 {

@@ -27,6 +27,7 @@ class StorageManager{
     static void readMetadata();
     static void writeMetadata();
     static bool ArchiveExists(const fs::path& filepath);
+    static bool checkStorageSetup();
     static void initializeBucketList();
     static void initializeStorageChains();
     
