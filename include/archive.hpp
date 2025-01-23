@@ -23,6 +23,7 @@ public:
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
     void dfsPrint() const;
+
 private:
     struct archiveNode
     {
@@ -48,6 +49,9 @@ private:
     void readRec(archiveNode*& curr,std::ifstream& in);
     void CreateFromDirectory(archiveNode*& curr,fs::path& dirPath,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
     void extractRec(const archiveNode* curr, const fs::path& currDir, std::fstream& storage, std::fstream& bucketList) const;
+    const archiveNode* findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const;
+    const archiveNode* findTopDirNode(const fs::path& relativePath) const;
+    fs::path trimPath(const fs::path p) const;
 };
 
 #endif

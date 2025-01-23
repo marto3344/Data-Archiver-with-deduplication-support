@@ -53,7 +53,7 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     }
 }
 
-void Archive::ExtractArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream &bucketList, std::fstream &stoarge) const
+void Archive::ExtractArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream &bucketList, std::fstream &storage) const
 {
     if(fs::exists(targetPath))
     {
@@ -63,12 +63,23 @@ void Archive::ExtractArchive(const fs::path &targetPath, const fs::path &archive
     {
         for (int i = 0; i < root->children.size(); i++)
         {
-            extractRec(root,targetPath,stoarge,bucketList);
+            extractRec(root,targetPath,storage,bucketList);
         }
     }
     else{
-        std::vector<const archiveNode*> nodes;
-        //TODO: Find roots that responds to the archive path
+        const archiveNode* dirTop = findTopDirNode(archivePath);
+        if(!dirTop)
+        {
+            throw std::invalid_argument("Archive path is invalid!");
+        }
+        fs::path remainingPath = trimPath(archivePath);
+        fs::path::iterator it = remainingPath.begin();
+        const archiveNode* dirRoot = findRec(dirTop,remainingPath,it);
+        if(!dirRoot)
+        {
+            throw std::invalid_argument("Archive path is invalid");
+        }
+        extractRec(dirRoot,targetPath,storage,bucketList);
     }
     
 }
@@ -102,8 +113,6 @@ void Archive::dfsRec(const archiveNode *root) const
 {
     if(!root)
         return;
-    //std::cout<<root->dirLabel<<"\n";
-    //std::cout<<"Files vec size: "<<root->files.size()<<'\n';
     for (int i = 0; i <root->files.size() ; i++)
     {
         if(root->files[i])
@@ -219,7 +228,6 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
     curr = new archiveNode();
     curr->dirLabel = dirPath.string();
     curr->last_modified = fs::last_write_time(dirPath);
-    //std::cout<<curr->dirLabel<<' '<<"Files size: "<<dirFiles.size()<<' '<<"Subdir size: "<<subDirectories.size()<<'\n';
     curr->files.reserve(dirFiles.size());
     for(int i =0;i<dirFiles.size(); i++)
     {
@@ -271,10 +279,62 @@ void Archive::extractRec(const archiveNode *curr, const fs::path& targetPath, st
     {
         extractRec(curr->children[i],currTargetDir,storage,bucketList);
     }
-
-    
 }
 
+
+
+const Archive::archiveNode *Archive::findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const
+{
+    if(it == relativePath.end() || !curr)
+    {
+        return curr;
+    }
+    for (int i = 0; i < curr->children.size(); i++)
+    {
+        if(curr->children[i]&&curr->children[i]->dirLabel == (*it).string())
+        {
+            it++;
+            return findRec(curr->children[i],relativePath,it);
+        }
+      }
+    return nullptr;
+}
+const Archive::archiveNode *Archive::findTopDirNode(const fs::path &relativePath) const
+{
+    if(!root)
+        return nullptr;
+    std::string pathString = relativePath.string();
+    std::string topDirLabel;
+    if(pathString[0] != '/')
+        topDirLabel.push_back(pathString[0]);
+    for (int i = 1; i < pathString.size(); i++)
+    {
+        if(pathString[i] == '/')
+            break;
+        topDirLabel.push_back(pathString[i]);
+    }
+    for (int i = 0; i < root->children.size(); i++)
+    {
+        if(root->children[i]&&root->children[i]->dirLabel == topDirLabel)
+        {
+            return root->children[i];
+        }
+    }
+    return nullptr;
+}
+fs::path Archive::trimPath(const fs::path p) const
+{
+    std::string pathString = p.string();
+    int len = 1;
+   
+    for (int i = 1; i < pathString.size(); i++)
+    {
+        if(pathString[i] == '/')
+            break;
+       len++;
+    }
+    return fs::path(pathString.erase(0,len));
+}
 Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
 {
     
