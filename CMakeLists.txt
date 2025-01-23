@@ -8,9 +8,13 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.c)
 
-# Create executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_library(backup_lib STATIC ${SOURCES})
 
+add_executable(backup_app ${SOURCES})
+
+set_target_properties(backup_app PROPERTIES OUTPUT_NAME "backup")
+
+target_link_libraries(backup_app PRIVATE backup_lib)
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
     add_subdirectory(test)

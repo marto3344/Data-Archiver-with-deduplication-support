@@ -21,12 +21,6 @@ void StorageManager::CreateArchive(const bool &hashOnly, const std::string &name
     fs::path archivePath (ARCHIVES_DATA_PATH);
     archivePath.append(filename);
     Archive a;
-    //--Fast deserialization test--
-    // std::ifstream in (archivePath.string(),std::ios::binary);
-    // a.readFromFile(in);
-    // a.dfsPrint();
-    // in.close();
-    //return;
     if(ArchiveExists(archivePath))
     {
         std::cout<<"Archive with that name already exists! Please use another!"<<'\n';
@@ -120,6 +114,23 @@ void StorageManager::StorageStatistic()
 {
     std::cout<<"Total files stored in storage: "<<StorageManager::totalFiles<<'\n';
     std::cout<<"Total chunks stored in storage: "<<StorageManager::bucketListSize<<'\n';
+}
+
+void StorageManager::removeOverlappingPaths(std::vector<fs::path> &filteredPaths, std::set<fs::path> &paths)
+{
+    for(const fs::path& p:paths)
+    {
+        bool isSubDir = false;
+        for (const fs::path& existing : filteredPaths) {
+            if (p.string().find(existing.string()) == 0) {
+                isSubDir = true;
+                break;
+            }
+        }
+        if (!isSubDir) {
+            filteredPaths.push_back(p);
+        }
+    }
 }
 
 void StorageManager::readMetadata()
