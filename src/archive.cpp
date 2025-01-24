@@ -54,10 +54,26 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     }
 }
 
-void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& relativePaths, std::fstream &bucketList, std::fstream &storage) const
+void Archive::ExtractArchive(const fs::path &targetPath, const std::vector<fs::path>& filteredPaths, std::fstream &bucketList, std::fstream &storage) const
 {
-    const archiveNode * startNode = root;
-    extractRec(startNode,targetPath,storage,bucketList);
+    if(filteredPaths.empty() || filteredPaths[0] == "/")
+    {
+        extractRec(root,targetPath,storage,bucketList);
+    }
+    else{
+        for (int i = 0; i < filteredPaths.size(); i++)
+        {
+            const archiveNode* startNode = findStartingNode(filteredPaths[i]);
+            if(!startNode)
+            {
+                std::string msg = "Error!The path does not exist in the archive! Given path:\n";
+                msg.append(filteredPaths[i].string());
+                throw std::invalid_argument(msg);
+            }
+            extractRec(startNode,targetPath,storage,bucketList);
+        }
+        
+    }
 }
 
 void Archive::writeToFile(std::ofstream &out) const

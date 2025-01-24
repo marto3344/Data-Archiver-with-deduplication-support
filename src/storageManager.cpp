@@ -88,6 +88,7 @@ namespace StorageManager
         {
             if (in.is_open())
                 in.close();
+            std::cout<<"Error durig reading archive information!Error message:\n";
             std::cerr << e.what() << '\n';
         }
         catch (...)
@@ -99,8 +100,9 @@ namespace StorageManager
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
-        {      
-            a.ExtractArchive(targetPath, relativePaths, bucketList, storage);
+        {   std::vector<fs::path>filteredPaths;
+            removeOverlappingPaths(filteredPaths,relativePaths);
+            a.ExtractArchive(targetPath,filteredPaths, bucketList, storage);
             storage.close();
             bucketList.close();
         }
@@ -281,6 +283,8 @@ namespace StorageManager
 
     void removeOverlappingPaths(std::vector<fs::path> &filteredPaths, const std::set<fs::path> &paths)
     {
+        if(paths.empty())
+            return;
         for (const fs::path &p : paths)
         {
             bool isSubDir = false;
@@ -454,6 +458,6 @@ namespace StorageManager
             path.pop_back();
        }
        path.insert(0,"/");
-       return (path == "/")? fs::path():fs::path(path);
+       return fs::path(path);
     }
 };

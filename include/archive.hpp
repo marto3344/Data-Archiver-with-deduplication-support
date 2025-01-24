@@ -19,7 +19,7 @@ public:
     Archive& operator= (const Archive& other);
     Archive& operator=(Archive && rhs);
     void CreateFromDirectoryList(std::vector<fs::path>& paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
-    void ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& relativePaths, std::fstream& bucketList, std::fstream& stoarge )const;
+    void ExtractArchive(const fs::path &targetPath, const std::vector<fs::path>& relativePaths, std::fstream& bucketList, std::fstream& stoarge )const;
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
@@ -57,5 +57,4 @@ private:
     void markRec(const archiveNode* curr,std::fstream& bucketList, std::fstream& stoarge);
     fs::path trimPath(const fs::path p) const;
 };
-
 #endif

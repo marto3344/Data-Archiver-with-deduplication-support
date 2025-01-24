@@ -127,18 +127,20 @@ int main(int argc, const char * argv[])
             }
 
         }
-        fs::path targetPath(fs::canonical(argv[3]));
-        std::set<fs::path> relativePaths;
-        for (int i = 4;i<argc;i++)
-        {
-            relativePaths.insert(argv[i]);
-        }
         try
         {
-            StorageManager::ExtraxtArchive(name,targetPath,relativePaths);
+            fs::path targetPath(fs::canonical(argv[3]));
+            std::set<fs::path> relativePaths;
+            for (int i = 4; i < argc; i++)
+            {
+                fs::path currPath = StorageManager::simplifyPath(argv[i]);
+                relativePaths.insert(currPath);
+            }
+            StorageManager::ExtraxtArchive(name, targetPath, relativePaths);
         }
         catch(const std::exception& e)
         {
+            std::cout<<"Error! Message:\n";
             std::cerr << e.what() << '\n';
             return -1;
         }
