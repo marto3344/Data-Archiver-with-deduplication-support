@@ -54,24 +54,10 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     }
 }
 
-void Archive::ExtractArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream &bucketList, std::fstream &storage) const
+void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& relativePaths, std::fstream &bucketList, std::fstream &storage) const
 {
-    const archiveNode * startNode = findStartingNode(archivePath);
-    if(!startNode)
-    {
-        throw std::invalid_argument("archive path is invalid!");
-    }
+    const archiveNode * startNode = root;
     extractRec(startNode,targetPath,storage,bucketList);
-}
-
-void Archive::CheckArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream &bucketList, std::fstream &stoarge) const
-{
-    const archiveNode * startNode = findStartingNode(archivePath);
-    if(!startNode)
-    {
-        throw std::invalid_argument("archive path is invalid!");
-    }
-    checkRec(startNode,targetPath,stoarge,bucketList);
 }
 
 void Archive::writeToFile(std::ofstream &out) const
@@ -271,20 +257,7 @@ void Archive::extractRec(const archiveNode *curr, const fs::path& targetPath, st
     }
 }
 
-void Archive::checkRec(const archiveNode *curr, const fs::path &currDir, std::fstream &storage, std::fstream &bucketList) const
-{
-    if(!curr)
-    {
-        return;
-    }
-    //TODO: Implement check logic for current dir
-    fs::path currTargetDir = currDir;
-    currTargetDir.append(fs::path(curr->dirLabel).filename().string());
-    for(int i = 0; i < curr->children.size();i++)
-    {
-        checkRec(curr->children[i],currTargetDir,storage,bucketList);
-    }
-}
+
 
 const Archive::archiveNode *Archive::findStartingNode(const fs::path &path) const
 {

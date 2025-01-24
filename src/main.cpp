@@ -80,9 +80,6 @@ int main(int argc, const char * argv[])
             std::cerr << e.what() << '\n';
             return -1;
         }
-        
-        
-
     }
     else if (commandNumber == 2)//Extract
     {
@@ -131,14 +128,14 @@ int main(int argc, const char * argv[])
 
         }
         fs::path targetPath(fs::canonical(argv[3]));
-        fs::path archivePath;
-        if(argc > 4)
+        std::set<fs::path> relativePaths;
+        for (int i = 4;i<argc;i++)
         {
-            archivePath = fs::path(argv[4]);
+            relativePaths.insert(argv[i]);
         }
         try
         {
-            StorageManager::ExtraxtArchive(name,targetPath,archivePath);
+            StorageManager::ExtraxtArchive(name,targetPath,relativePaths);
         }
         catch(const std::exception& e)
         {
@@ -162,7 +159,7 @@ int main(int argc, const char * argv[])
     {
         if(argc < 4)
         {
-            std::cout<<"Error! Not enough arguments for create!\n";
+            std::cout<<"Error! Not enough arguments for update!\n";
             std::cout<<"Use help to view the list of commands!";
             return - 1;
         }
@@ -173,6 +170,7 @@ int main(int argc, const char * argv[])
             size_t directoriesStart = hashOnly? 4:3;
             std::set<fs::path> directories;
             parseDirectories(directoriesStart,argc,argv,directories);
+            StorageManager::UpdateArchive(hashOnly,archiveName,directories);
         }
         catch(const std::exception& e)
         {

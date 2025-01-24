@@ -56,7 +56,7 @@ namespace StorageManager
         StorageStatistic();
     }
 
-    void ExtraxtArchive(const std::string &name, const fs::path &targetPath, const fs::path &archivePath)
+    void ExtraxtArchive(const std::string &name, const fs::path &targetPath, const std::set<fs::path>& relativePaths)
     {
         if (!checkStorageSetup())
         {
@@ -82,7 +82,7 @@ namespace StorageManager
         try
         {
             a.readFromFile(in);
-            //a.dfsPrint();
+            in.close();
         }
         catch (const std::exception &e)
         {
@@ -99,9 +99,10 @@ namespace StorageManager
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
-        {
-            fs::path simplifiedPath = simplifyPath(archivePath);     
-            a.ExtractArchive(targetPath, simplifiedPath, bucketList, storage);
+        {      
+            a.ExtractArchive(targetPath, relativePaths, bucketList, storage);
+            storage.close();
+            bucketList.close();
         }
         catch (const std::exception &e)
         {
@@ -161,7 +162,7 @@ namespace StorageManager
         try
         {
             fs::path simplifiedPath = simplifyPath(archivePath);
-            a.CheckArchive(targetPath, simplifiedPath, bucketList, storage);
+           
         }
         catch (const std::exception &e)
         {
@@ -175,6 +176,65 @@ namespace StorageManager
             storage.close();
             bucketList.close();
         }
+    }
+
+    void UpdateArchive(const bool &hashOnly, const std::string &name, const std::set<fs::path> &dirs)
+    {
+        if (!checkStorageSetup())
+        {
+            std::cout << "Run command \'initialize\' to create all necessary files!\n";
+            return;
+        }
+        std::string filename = name;
+        filename.append(".dat");
+        fs::path archive(ARCHIVES_DATA_PATH);
+        archive.append(filename);
+        if (!ArchiveExists(archive))
+        {
+            std::cout << "Archive with that name was not found in storage!\n";
+            return;
+        }
+        std::ifstream in(archive, std::ios::binary);
+        if (!in.is_open())
+        {
+            std::cout << "Could not open the archive inforamtion file!\n";
+            return;
+        }
+        Archive curr;
+        try
+        {
+            curr.readFromFile(in);
+            in.close();
+        }
+        catch (const std::exception &e)
+        {
+            if (in.is_open())
+                in.close();
+            std::cerr << e.what() << '\n';
+        }
+        catch (...)
+        {
+            std::cout << "Something went wrong during archive fetch!\n";
+            if (in.is_open())
+                in.close();
+        }
+        std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
+        std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
+        std::vector<fs::path> filteredDirectories;
+        removeOverlappingPaths(filteredDirectories, dirs);
+        Archive updatedArchive;
+        updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);
+        std::ofstream out(archive.string(), std::ios::binary);
+        if (!out.is_open())
+        {
+            std::cout << "Cannot update the archive!Please try again later!\n";
+            return;
+        }
+        storage.close();
+        bucketList.close();
+        updatedArchive.writeToFile(out);
+        out.close();
+
     }
 
     void InitializeStorage()

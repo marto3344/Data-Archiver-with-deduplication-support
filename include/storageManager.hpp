@@ -10,7 +10,7 @@
 namespace fs =std::filesystem;
 namespace StorageManager{
     void CreateArchive(const bool& hashOnly,const std::string& name,const std::set<fs::path>& dirs);
-    void ExtraxtArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
+    void ExtraxtArchive(const std::string& name, const fs::path& targetPath, const std::set<fs::path>& relativePaths);
     void CheckArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
     void UpdateArchive(const bool& hashOnly,const std::string& name,const std::set<fs::path>& dirs);
     void InitializeStorage();
