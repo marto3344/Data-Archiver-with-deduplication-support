@@ -101,6 +101,11 @@ void Archive::dfsPrint() const
     dfsRec(root);
 }
 
+void Archive::markAsRemoved(std::fstream &bucketList, std::fstream &storage)
+{
+    markRec(root,bucketList,storage);
+}
+
 void Archive::dfsRec(const archiveNode *root) const
 {
     if(!root)
@@ -324,6 +329,20 @@ const Archive::archiveNode *Archive::findTopDirNode(const fs::path &relativePath
         }
     }
     return nullptr;
+}
+void Archive::markRec(const archiveNode *curr, std::fstream &bucketList, std::fstream &storage)
+{
+    if(!curr)
+        return;
+    for(int i = 0; i < curr->files.size(); ++i)
+    {
+        curr->files[i]->markFileDeleted(bucketList,storage);
+    }
+    for(int i = 0 ;i<curr->children.size();++i)
+    {
+        markRec(curr->children[i],bucketList,storage);
+    }
+    
 }
 fs::path Archive::trimPath(const fs::path p) const
 {

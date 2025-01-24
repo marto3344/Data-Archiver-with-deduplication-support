@@ -24,7 +24,8 @@ class FileChunk{
     void storeChunk(std::fstream& storage,std::fstream& bucketList, const bool hashOnly);
     uint64_t getHash() const {return hash;};
     uint64_t getId() const {return chunk_id;};
-    uint32_t getChunkSize(){return chunkSize;};
+    uint32_t getChunkSize()const{return chunkSize;};
+    uint32_t getFilesCount()const {return filesCount;};
     private:
     uint32_t chunkSize;
     uint32_t filesCount;

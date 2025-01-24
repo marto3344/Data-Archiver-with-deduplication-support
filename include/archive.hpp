@@ -24,7 +24,7 @@ public:
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
     void dfsPrint() const;
-    void markRemovedChunks(std::fstream& bucketList, std::fstream& stoarge);
+    void markAsRemoved(std::fstream& bucketList, std::fstream& stoarge);
 
 private:
     struct archiveNode

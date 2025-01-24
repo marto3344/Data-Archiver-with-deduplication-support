@@ -232,9 +232,10 @@ namespace StorageManager
             std::cout << "Cannot update the archive!Please try again later!\n";
             return;
         }
+        updatedArchive.writeToFile(out);
+        curr.markAsRemoved(bucketList,storage);
         storage.close();
         bucketList.close();
-        updatedArchive.writeToFile(out);
         out.close();
 
     }
@@ -421,6 +422,8 @@ namespace StorageManager
     }
     fs::path simplifyPath(const fs::path &p)
     {
+       if(p.empty())
+            return p;
        std::string path = p.string();
        std::stack<std::string> st;
        std::string dir = "";

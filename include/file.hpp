@@ -20,11 +20,10 @@ class File{
     void deserialize(std::istream& in);
 
     bool extractFile(std::ofstream& file,std::fstream& storage,std::fstream& bucketList) const;
-    bool updateFile(const fs::path& targerFile, std::ifstream& in);
     bool storeFile (const fs::path& file,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly );
     std::string getName() const {return name;};
     void setName(const std::string& filename);
-
+    void markFileDeleted(std::fstream& bucketList, std::fstream& stoarge);
     private:
     fs::file_time_type last_modified;
     uintmax_t size;

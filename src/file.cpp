@@ -88,12 +88,6 @@ bool File::extractFile(std::ofstream& file,std::fstream& storage,std::fstream& b
     return true;
 }
 
-bool File::updateFile(const fs::path &targerFile, std::ifstream &in)
-{
-
-    return false;
-}
-
 bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream &stoarge, const bool hashOnly) 
 {
     if(hashFile(file,bucketList,stoarge, hashOnly))
@@ -107,6 +101,48 @@ bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream
 void File::setName(const std::string &filename)
 {
     name = filename;
+}
+
+void File::markFileDeleted(std::fstream &bucketList, std::fstream &storage)
+{
+    if(!bucketList.is_open()||!storage.is_open())
+    {
+        return;
+    }
+    for (int i = 0; i < chunk_list.size(); i++)
+    {
+        FileChunk curr;
+        uint32_t bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
+        bucketList.seekg(bucketPos);
+        uint64_t listHead;
+        bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
+        if (listHead != 0)
+        {
+            storage.seekg(listHead);
+            for (;;)
+            {
+                uint64_t nextChunk;
+                if (storage.eof())
+                    break;
+                curr.deserialize(storage);
+                if (curr.getId() == chunk_list[i].second)
+                {
+                    uint32_t newFilesCount = curr.getFilesCount();
+                    if(newFilesCount)
+                        newFilesCount--;
+                    storage.seekg(- (sizeof(uint32_t) + 2* sizeof(uint64_t) + curr.getChunkSize()),std::ios::cur);
+                    storage.seekp(storage.tellg());
+                    storage.write(reinterpret_cast<const char*>(&newFilesCount),sizeof(uint32_t));
+                    break;
+                }
+                storage.read(reinterpret_cast<char *>(&nextChunk), sizeof(uint64_t));
+                if (nextChunk == 0)
+                    break;
+                storage.seekg(nextChunk);
+            } 
+       } // End if
+      
+    } 
 }
 
 bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstream& storage,  const bool hashOnly)

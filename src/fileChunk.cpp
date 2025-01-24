@@ -105,6 +105,10 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, cons
                 if (compareChunkData(currChunk))
                 {
                     this->chunk_id = currChunk.chunk_id;
+                    currChunk.filesCount ++;
+                    storage.seekg(- (sizeof(uint32_t) + 2* sizeof(uint64_t) + chunkSize),std::ios::cur);
+                    storage.seekp(storage.tellg());
+                    storage.write(reinterpret_cast<const char*>(&currChunk.filesCount),sizeof(uint32_t));
                     return;
                 }
             }
