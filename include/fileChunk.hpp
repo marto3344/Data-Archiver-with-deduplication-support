@@ -12,6 +12,7 @@ class FileChunk{
     FileChunk();
     FileChunk(uint32_t chunkSize):chunkSize(chunkSize){
         chunk_data = std::vector<uint8_t>(chunkSize,0);
+        filesCount = 1;
     };
     void deserialize(std::istream& in);
     void serialize (std::ostream& out)const;

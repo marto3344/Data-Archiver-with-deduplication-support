@@ -82,6 +82,7 @@ namespace StorageManager
         try
         {
             a.readFromFile(in);
+            //a.dfsPrint();
         }
         catch (const std::exception &e)
         {
@@ -99,7 +100,7 @@ namespace StorageManager
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
         {
-            fs::path simplifiedPath = simplifyPath(archivePath);
+            fs::path simplifiedPath = simplifyPath(archivePath);     
             a.ExtractArchive(targetPath, simplifiedPath, bucketList, storage);
         }
         catch (const std::exception &e)

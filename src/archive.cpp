@@ -103,6 +103,7 @@ void Archive::dfsRec(const archiveNode *root) const
 {
     if(!root)
         return;
+    std::cout<<root->dirLabel<<'\n';
     for (int i = 0; i <root->files.size() ; i++)
     {
         if(root->files[i])
@@ -112,10 +113,9 @@ void Archive::dfsRec(const archiveNode *root) const
     }
     for (size_t i = 0; i < root->children.size(); i++)
     {
-        std::cout<<'\n';
         dfsRec(root->children[i]);
+        std::cout<<'\n';
     }
-    
     
 }
 
@@ -288,9 +288,9 @@ void Archive::checkRec(const archiveNode *curr, const fs::path &currDir, std::fs
 
 const Archive::archiveNode *Archive::findStartingNode(const fs::path &path) const
 {
-    if(path.empty())
+    if(path.empty() || path.string() == "/")
     {
-      return nullptr;
+      return root;
     }
     else{
         const archiveNode* dirTop = findTopDirNode(path);

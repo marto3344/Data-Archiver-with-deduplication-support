@@ -6,7 +6,9 @@ extern "C" {
 }
 FileChunk::FileChunk()
 {
-    chunk_data.reserve(chunkSize);
+    chunkSize = 0;
+    filesCount = 1;
+    chunk_data = std::vector<uint8_t>();
 }
 void FileChunk::deserialize(std::istream &in)
 {
@@ -94,6 +96,10 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, cons
                 if (hashOnly)
                 {
                     this->chunk_id = currChunk.chunk_id;
+                    currChunk.filesCount ++;
+                    storage.seekg(- (sizeof(uint32_t) + 2* sizeof(uint64_t) + chunkSize),std::ios::cur);
+                    storage.seekp(storage.tellg());
+                    storage.write(reinterpret_cast<const char*>(&currChunk.filesCount),sizeof(uint32_t));
                     return;
                 }
                 if (compareChunkData(currChunk))
