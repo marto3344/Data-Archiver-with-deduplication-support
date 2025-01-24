@@ -6,6 +6,8 @@
 #include<filesystem>
 #include<set>
 #include<fstream>
+#include<string>
+#include<stack>
 #include "storageManager.hpp"
 #include "archive.hpp"
 #include "file.hpp"
@@ -97,7 +99,8 @@ namespace StorageManager
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
         {
-            a.ExtractArchive(targetPath, archivePath, bucketList, storage);
+            fs::path simplifiedPath = simplifyPath(archivePath);
+            a.ExtractArchive(targetPath, simplifiedPath, bucketList, storage);
         }
         catch (const std::exception &e)
         {
@@ -107,7 +110,67 @@ namespace StorageManager
         }
         catch (...)
         {
-            std::cout << "Unlucky :(\n";
+            std::cout << "Something went wrong during extraction!\n";
+            storage.close();
+            bucketList.close();
+        }
+    }
+
+    void CheckArchive(const std::string &name, const fs::path &targetPath, const fs::path &archivePath)
+    {
+         if (!checkStorageSetup())
+        {
+            std::cout << "Run command \'initialize\' to create all necessary files!\n";
+            return;
+        }
+        std::string filename = name;
+        filename.append(".dat");
+        fs::path archive(ARCHIVES_DATA_PATH);
+        archive.append(filename);
+        if (!ArchiveExists(archive))
+        {
+            std::cout << "Archive with that name was not found in storage!\n";
+            return;
+        }
+        std::ifstream in(archive, std::ios::binary);
+        if (!in.is_open())
+        {
+            std::cout << "Could not open the archive inforamtion file!\n";
+            return;
+        }
+        Archive a;
+        try
+        {
+            a.readFromFile(in);
+        }
+        catch (const std::exception &e)
+        {
+            if (in.is_open())
+                in.close();
+            std::cerr << e.what() << '\n';
+        }
+        catch (...)
+        {
+            std::cout << "Something went wrong during archive fetch!\n";
+            if (in.is_open())
+                in.close();
+        }
+        std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
+        std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
+        try
+        {
+            fs::path simplifiedPath = simplifyPath(archivePath);
+            a.CheckArchive(targetPath, simplifiedPath, bucketList, storage);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+            storage.close();
+            bucketList.close();
+        }
+        catch (...)
+        {
+            std::cout << "Something went wrong during check!\n";
             storage.close();
             bucketList.close();
         }
@@ -262,5 +325,74 @@ namespace StorageManager
             chainsFile.write(reinterpret_cast<const char *>(&dummyByte), sizeof(uint8_t));
         }
         chainsFile.close();
+    }
+    std::string topDirPath(const fs::path& p)
+    {
+        std::string pathString = p.string();
+        std::string topDirLabel;
+        if(pathString[0] != '/')
+            topDirLabel.push_back(pathString[0]);
+        for (int i = 1; i < pathString.size(); i++)
+        {
+            if(pathString[i] == '/')
+                break;
+            topDirLabel.push_back(pathString[i]);
+        }
+        return topDirLabel;
+    }
+    fs::path trimPath(const fs::path& p)
+    {
+        std::string pathString = p.string();
+        int len = 1;
+        if(pathString[0]=='/')
+            len++;
+        for (int i = 1; i < pathString.size(); i++)
+        {
+            if (pathString[i] == '/')
+                break;
+            len++;
+        }
+        return fs::path(pathString.erase(0, len));
+    }
+    fs::path simplifyPath(const fs::path &p)
+    {
+       std::string path = p.string();
+       std::stack<std::string> st;
+       std::string dir = "";
+       for(size_t i = 0; i<path.size(); ++i)
+       {
+         if(path[i]!='/')
+            dir.push_back(path[i]);
+         
+         if(path[i]=='/' || i == path.size() -1)
+         {
+            if(dir != ".." && dir != "." && dir !="")
+            {
+                dir+='/';
+                st.push (dir);
+                dir.clear();
+            }
+            else if ( dir == "..")
+            {
+                if(!st.empty())
+                    st.pop();
+                dir.clear();
+            }
+            else if (dir == ".")
+                dir.clear(); 
+         }
+       } 
+       path.clear();
+       while(!st.empty())
+       {
+           path.insert(0, st.top());
+           st.pop();
+       }
+       if(!path.empty() && path[path.size() - 1] == '/')
+       {
+            path.pop_back();
+       }
+       path.insert(0,"/");
+       return (path == "/")? fs::path():fs::path(path);
     }
 };

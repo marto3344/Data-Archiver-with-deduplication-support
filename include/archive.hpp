@@ -19,6 +19,7 @@ public:
     Archive& operator=(Archive && rhs);
     void CreateFromDirectoryList(std::vector<fs::path>& paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
     void ExtractArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream& bucketList, std::fstream& stoarge )const;
+    void CheckArchive(const fs::path &targetPath, const fs::path &archivePath, std::fstream& bucketList, std::fstream& stoarge)const;
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
@@ -48,7 +49,9 @@ private:
     void writeRec(const archiveNode* curr, std::ofstream& out) const;
     void readRec(archiveNode*& curr,std::ifstream& in);
     void CreateFromDirectory(archiveNode*& curr,fs::path& dirPath,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
-    void extractRec(const archiveNode* curr, const fs::path& currDir, std::fstream& storage, std::fstream& bucketList) const;
+    void extractRec(const archiveNode* curr, const fs::path& targetPath, std::fstream& storage, std::fstream& bucketList) const;
+    void checkRec(const archiveNode* curr, const fs::path& currDir, std::fstream& storage, std::fstream& bucketList) const;
+    const archiveNode* findStartingNode(const fs::path& path)const;
     const archiveNode* findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const;
     const archiveNode* findTopDirNode(const fs::path& relativePath) const;
     fs::path trimPath(const fs::path p) const;

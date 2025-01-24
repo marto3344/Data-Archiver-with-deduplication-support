@@ -11,8 +11,8 @@ namespace fs =std::filesystem;
 namespace StorageManager{
     void CreateArchive(const bool& hashOnly,const std::string& name,const std::set<fs::path>& dirs);
     void ExtraxtArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
-    void CheckArchive();
-    void UpdateArchive();
+    void CheckArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
+    void UpdateArchive(const bool& hashOnly,const std::string& name,const std::set<fs::path>& dirs);
     void InitializeStorage();
     void StorageStatistic();
     void DeleteStorage();
@@ -27,6 +27,9 @@ namespace StorageManager{
     bool checkStorageSetup();
     void initializeBucketList();
     void initializeStorageChains();
+    std::string topDirPath(const fs::path& p);
+    fs::path trimPath(const fs::path& p);
+    fs::path simplifyPath(const fs::path& p);
 
 };
 #endif
