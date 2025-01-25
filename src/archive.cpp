@@ -100,8 +100,14 @@ void Archive::readFromFile(std::ifstream &in)
 }
 
 void Archive::dfsPrint() const
-{
-    dfsRec(root);
+{   
+    std::cout<<"Date archived: ";
+    StorageManager::printTime(date_archived);
+    std::cout<<'\n';
+    for(int i = 0; i < root->children.size();i++)
+    {
+        dfsRec(root->children[i]);
+    }
 }
 
 void Archive::setDateArchived(const fs::file_time_type &dArchived)
@@ -118,7 +124,7 @@ void Archive::dfsRec(const archiveNode *root) const
 {
     if(!root)
         return;
-    std::cout<<root->dirLabel<<'\n';
+    std::cout<<root->dirLabel<<":\n";
     for (int i = 0; i <root->files.size() ; i++)
     {
         if(root->files[i])
@@ -126,10 +132,10 @@ void Archive::dfsRec(const archiveNode *root) const
             std::cout<<root->files[i]->getName()<<' ';
         }
     }
+    std::cout<<'\n';
     for (size_t i = 0; i < root->children.size(); i++)
     {
         dfsRec(root->children[i]);
-        std::cout<<'\n';
     }
     
 }

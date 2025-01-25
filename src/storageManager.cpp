@@ -255,6 +255,49 @@ namespace StorageManager
 
     }
 
+    void ArchiveInfo(const std::string &name)
+    {
+        if (!checkStorageSetup())
+        {
+            std::cout << "Run command \'initialize\' to create all necessary files!\n";
+            return;
+        }
+        std::string filename = name;
+        filename.append(".dat");
+        fs::path archive(ARCHIVES_DATA_PATH);
+        archive.append(filename);
+        if (!ArchiveExists(archive))
+        {
+            std::cout << "Archive with that name was not found in storage!\n";
+            return;
+        }
+        std::ifstream in(archive, std::ios::binary);
+        if (!in.is_open())
+        {
+            std::cout << "Could not open the archive inforamtion file!\n";
+            return;
+        }
+        Archive curr;
+        try
+        {
+            curr.readFromFile(in);
+            in.close();
+        }
+        catch (const std::exception &e)
+        {
+            if (in.is_open())
+                in.close();
+            std::cerr << e.what() << '\n';
+        }
+        catch (...)
+        {
+            std::cout << "Something went wrong during archive fetch!\n";
+            if (in.is_open())
+                in.close();
+        }
+        curr.dfsPrint();
+    }
+
     void InitializeStorage()
     {
         fs::path dataFolder(DATA_PATH);
@@ -477,5 +520,13 @@ namespace StorageManager
        }
        path.insert(0,"/");
        return fs::path(path);
+    }
+    void printTime(const fs::file_time_type& time_point)//Sources: https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
+    {
+        auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+        time_point - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+        std::time_t time = std::chrono::system_clock::to_time_t(sctp);
+    
+        std::cout<<std::put_time(std::localtime(&time), "%d-%m-%Y %H:%M");
     }
 };

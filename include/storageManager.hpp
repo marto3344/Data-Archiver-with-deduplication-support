@@ -13,6 +13,7 @@ namespace StorageManager{
     void ExtraxtArchive(const std::string& name, const fs::path& targetPath, const std::set<fs::path>& relativePaths);
     void CheckArchive(const std::string& name, const fs::path& targetPath, const fs::path& archivePath);
     void UpdateArchive(const bool& hashOnly,const std::string& name,const std::set<fs::path>& dirs);
+    void ArchiveInfo(const std::string& name);
     void InitializeStorage();
     void StorageStatistic();
     void DeleteStorage();
@@ -30,6 +31,7 @@ namespace StorageManager{
     std::string topDirPath(const fs::path& p);
     fs::path trimPath(const fs::path& p);
     fs::path simplifyPath(const fs::path& p);
+    void printTime(const fs::file_time_type& time_point);
 
 };
 #endif
