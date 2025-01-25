@@ -52,6 +52,11 @@ namespace StorageManager
             a.CreateFromDirectoryList(filteredDirectories, bucketList, storage, hashOnly);
             storage.close();
             bucketList.close();
+            std::cout << "Total files stored in storage: " << totalFiles << '\n';
+            std::cout << "Total chunks stored in storage: " << bucketListSize << '\n';
+            std::cout<<"Last added  chunk id: "<<lastChunkId<<'\n';
+            std::cout<<"Bucket list capacity: "<<bucketListCapacity<<'\n';
+            std::cout<<"Load factor: "<<(double)bucketListSize/(double)bucketListCapacity<<'\n';
             writeMetadata();
             a.writeToFile(out);
             out.close();
@@ -330,8 +335,17 @@ namespace StorageManager
 
     void StorageStatistic()
     {
+        if (!checkStorageSetup())
+        {
+            std::cout << "Run command \'initialize\' to create all necessary files!\n";
+            return;
+        }
+        readMetadata();
         std::cout << "Total files stored in storage: " << totalFiles << '\n';
         std::cout << "Total chunks stored in storage: " << bucketListSize << '\n';
+        std::cout<<"Last added  chunk id: "<<lastChunkId<<'\n';
+        std::cout<<"Bucket list capacity: "<<bucketListCapacity<<'\n';
+        std::cout<<"Load factor: "<<(double)bucketListSize/(double)bucketListCapacity<<'\n';
     }
 
     void DeleteStorage()

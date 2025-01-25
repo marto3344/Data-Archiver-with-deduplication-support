@@ -137,7 +137,7 @@ void File::markFileDeleted(std::fstream &bucketList, std::fstream &storage)
                     uint32_t newFilesCount = curr.getFilesCount();
                     if(newFilesCount)
                         newFilesCount--;
-                    storage.seekg(- (sizeof(uint32_t) + 2* sizeof(uint64_t) + curr.getChunkSize()),std::ios::cur);
+                    storage.seekg(- (2*sizeof(uint32_t) + 2* sizeof(uint64_t) + curr.getChunkSize()),std::ios::cur);
                     storage.seekp(storage.tellg());
                     storage.write(reinterpret_cast<const char*>(&newFilesCount),sizeof(uint32_t));
                     break;
@@ -160,23 +160,23 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     this->name = filePath.filename().string();
     this->last_modified = fs::last_write_time(filePath);
     this->size = fs::file_size(filePath);
-    uint64_t avgChunkSize = determineChunkSize();
+    uint32_t maxChunkSize = (1<<25);//32MB
+    uint32_t avgChunkSize = (size > 10) ? std::min((uint32_t)(size / 10), maxChunkSize ) : size;
     uintmax_t bytesRead = 0;
-    
+    std::vector<uint8_t>buffer(avgChunkSize);
     uintmax_t chunkSize;
-    std::vector<uint8_t> buffer;
-    FileChunk curr;
     while (bytesRead<size && file.good()) {
-        chunkSize = std::min((size - bytesRead),avgChunkSize);
-        buffer.resize(chunkSize);
-    
-        file.read(reinterpret_cast<char *>(buffer.data()),chunkSize);
-        curr.setChunkSize(chunkSize);
-        curr.moveChunkData(buffer);
+        chunkSize = std::min((uint32_t)(size - bytesRead),avgChunkSize);
+        if(chunkSize<avgChunkSize)
+        {
+            buffer.resize(chunkSize);
+        }
+        file.read(reinterpret_cast<char*>(buffer.data()),chunkSize);
+        FileChunk curr(buffer);
         curr.hashChunk();
         curr.storeChunk(storage,bucketList, hashOnly);
         chunk_list.push_back({curr.getHash(),curr.getId()});
-        bytesRead +=chunkSize;
+        bytesRead +=curr.getChunkSize();
     }
     if(bytesRead < size)
     {

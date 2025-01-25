@@ -73,20 +73,8 @@ void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path
         findStartingNodes(root,startingNodes,pathsToFind);
         if(startingNodes.size()< filteredPaths.size())
         {
-            std::cout<<"Warning! Some of the input paths are incorect or missing in the archive! ";
-            std::cout<<"Dir missing count: "<<filteredPaths.size() - startingNodes.size()<<'\n';
-            std::cout<<"Do you want to continue anyway? Type (y/n):\n";
-            char responce;
-            std::cin>>responce;
-            if(responce == 'n')
-            {
-                return;
-            }
-            else if (responce != 'y')
-            {
-                std::cout<<"Unrecognized symbol: "<<responce<<'\n';
-                return;
-            }
+            std::cout<<"Some of the input paths are incorect or missing in the archive! ";
+            return;
         }
         for (int i = 0; i < startingNodes.size(); i++)
         {
