@@ -29,6 +29,7 @@ namespace StorageManager{
     void initializeBucketList();
     void initializeStorageChains();
     void printTime(const fs::file_time_type& time_point);
+    void printAllArchives();
 
 };
 #endif

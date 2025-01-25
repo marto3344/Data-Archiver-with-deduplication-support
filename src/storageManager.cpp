@@ -458,4 +458,27 @@ namespace StorageManager
     
         std::cout<<std::put_time(std::localtime(&time), "%d-%m-%Y %H:%M");
     }
+    void printAllArchives()
+    {
+        if (!checkStorageSetup())
+        {
+            std::cout << "Run command \'initialize\' to create all necessary files!\n";
+            return;
+        }
+        fs::path archivesDir(ARCHIVES_DATA_PATH);
+        if(fs::is_empty(archivesDir))
+        {
+            std::cout<<"No archives found in storage!\n";
+            return;
+        }
+        std::cout<<"Here is a list of archives:\n";
+        for (const fs::path& dirEntry :fs::directory_iterator(archivesDir))
+        {
+            if(fs::is_regular_file(dirEntry))
+            {
+                std::cout<<dirEntry.stem().string()<<'\n';
+            }
+        }
+        
+    }
 };

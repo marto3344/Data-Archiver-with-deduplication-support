@@ -8,12 +8,11 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.c)
 
-add_library(backup_lib STATIC ${SOURCES})
-
 add_executable(backup ${SOURCES})
 
-target_link_libraries(backup PRIVATE backup_lib)
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
+    add_library(backup_lib STATIC ${SOURCES})
+    target_link_libraries(backup PRIVATE backup_lib)
     add_subdirectory(test)
 endif()

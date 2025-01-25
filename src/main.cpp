@@ -75,8 +75,8 @@ int main(int argc, const char * argv[])
         std::cout<<"Error! Empty argument list! Pass help as an argument to see the available commands!\n";
         return -1;
     }
-    const size_t COMMANDS_COUNT = 8;
-    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update","initialize","delete","info"};
+    const size_t COMMANDS_COUNT = 9;
+    const char* commandsList [COMMANDS_COUNT] = {"check", "create", "extract","help", "update","initialize","delete","info","list"};
 
     int commandNumber = findCommand(commandsList,COMMANDS_COUNT, argv[1]);
     if(commandNumber == -1)
@@ -282,6 +282,10 @@ int main(int argc, const char * argv[])
         }
         std::string name = argv[2];
         StorageManager::ArchiveInfo(name);
+    }
+    else if(commandNumber == 8)//List
+    {
+        StorageManager::printAllArchives();
     }
     return 0;
 }
