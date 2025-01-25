@@ -3,11 +3,42 @@
 #include<set>
 #include <cstring>
 #include <exception>
+#include<string>
 #include "storageManager.hpp"
 
 
 namespace fs  = std::filesystem;
-
+void parseArchivePaths(size_t start,const size_t size,const char* input[],std::set<fs::path>&paths)
+{
+    for(size_t i = start; i <size; i++)
+    {
+        std::string str = input[i];
+        fs::path p;
+    
+        if(str[0]=='/' || str[0] == '\\')
+        {
+            if(str.size()>1)
+                str.erase(0,1);
+            else{
+                p = fs::path("/");
+                paths.insert(p);
+                return;
+            }
+        }
+        else if(str.find("./") == 0 || str.find(".\\")==0)
+        {
+            if(str.size()>2)
+                str.erase(0,2);
+            else{
+                p = fs::path("/");
+                paths.insert(p);
+                return;
+            }
+        }
+        p = fs::path(str);
+        paths.insert(fs::weakly_canonical(p));
+    }
+}
 void parseDirectories(size_t start, const size_t end, const  char* input [], std::set<fs::path>& directories){
     for (size_t i = start; i < end; i++)
     {   
@@ -104,7 +135,7 @@ int main(int argc, const char * argv[])
                 {          
                     fs::create_directory(argv[3]);
                     if(fs::exists(argv[3]))
-                        std::cout<<"Directory created successfully! Now extracting ... \n";
+                        std::cout<<"Directory created successfully! Now trying to extracting ... \n";
                     else{
                         std::cout<<"Somethig went wrong during directory creation! Please try again! \n";
                         return -1;
@@ -130,11 +161,16 @@ int main(int argc, const char * argv[])
         try
         {
             fs::path targetPath(fs::canonical(argv[3]));
-            std::set<fs::path> relativePaths;
-            for (int i = 4; i < argc; i++)
+            if(!fs::exists(targetPath))
             {
-                fs::path currPath = StorageManager::simplifyPath(argv[i]);
-                relativePaths.insert(currPath);
+                 std::cout<< "Invalid path: "<<argv[3]<<'\n';
+                 std::cout<<"Make sure the path exists! Also use quotations if needed!\n";
+                 return -1;
+            }
+            std::set<fs::path> relativePaths;
+            if(argc>4)
+            {
+                parseArchivePaths(4,argc,argv,relativePaths);
             }
             StorageManager::ExtraxtArchive(name, targetPath, relativePaths);
         }

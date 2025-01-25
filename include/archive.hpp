@@ -6,6 +6,7 @@
 #include<string>
 #include<string>
 #include<set>
+#include<unordered_set>
 #include "file.hpp"
 namespace fs =std::filesystem;
 
@@ -19,7 +20,7 @@ public:
     Archive& operator= (const Archive& other);
     Archive& operator=(Archive && rhs);
     void CreateFromDirectoryList(std::vector<fs::path>& paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
-    void ExtractArchive(const fs::path &targetPath, const std::vector<fs::path>& relativePaths, std::fstream& bucketList, std::fstream& stoarge )const;
+    void ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& archivePaths, std::fstream& bucketList, std::fstream& stoarge )const;
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
@@ -53,7 +54,7 @@ private:
     void readRec(archiveNode*& curr,std::ifstream& in);
     void CreateFromDirectory(archiveNode*& curr,fs::path& dirPath,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
     void extractRec(const archiveNode* curr, const fs::path& targetPath, std::fstream& storage, std::fstream& bucketList) const;
-    const archiveNode* findStartingNode(const fs::path& path)const;
+    void findStartingNodes(const archiveNode* curr,std::vector<const archiveNode*>&nodes,std::unordered_set<std::string>& paths)const;
     const archiveNode* findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const;
     const archiveNode* findTopDirNode(const fs::path& relativePath) const;
     void markRec(const archiveNode* curr,std::fstream& bucketList, std::fstream& stoarge);

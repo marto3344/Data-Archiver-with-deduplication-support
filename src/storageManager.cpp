@@ -56,7 +56,7 @@ namespace StorageManager
         StorageStatistic();
     }
 
-    void ExtraxtArchive(const std::string &name, const fs::path &targetPath, const std::set<fs::path>& relativePaths)
+    void ExtraxtArchive(const std::string &name, const fs::path &targetPath, const std::set<fs::path>& archivePaths)
     {
         if (!checkStorageSetup())
         {
@@ -100,9 +100,9 @@ namespace StorageManager
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
-        {   std::vector<fs::path>filteredPaths;
-            removeOverlappingPaths(filteredPaths,relativePaths);
-            a.ExtractArchive(targetPath,filteredPaths, bucketList, storage);
+        {   
+            
+            a.ExtractArchive(targetPath,archivePaths, bucketList, storage);
             storage.close();
             bucketList.close();
         }
@@ -163,7 +163,7 @@ namespace StorageManager
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         try
         {
-            fs::path simplifiedPath = simplifyPath(archivePath);
+            
            
         }
         catch (const std::exception &e)
@@ -449,77 +449,6 @@ namespace StorageManager
             chainsFile.write(reinterpret_cast<const char *>(&dummyByte), sizeof(uint8_t));
         }
         chainsFile.close();
-    }
-    std::string topDirPath(const fs::path& p)
-    {
-        std::string pathString = p.string();
-        std::string topDirLabel;
-        if(pathString[0] != '/')
-            topDirLabel.push_back(pathString[0]);
-        for (int i = 1; i < pathString.size(); i++)
-        {
-            if(pathString[i] == '/')
-                break;
-            topDirLabel.push_back(pathString[i]);
-        }
-        return topDirLabel;
-    }
-    fs::path trimPath(const fs::path& p)
-    {
-        std::string pathString = p.string();
-        int len = 1;
-        if(pathString[0]=='/')
-            len++;
-        for (int i = 1; i < pathString.size(); i++)
-        {
-            if (pathString[i] == '/')
-                break;
-            len++;
-        }
-        return fs::path(pathString.erase(0, len));
-    }
-    fs::path simplifyPath(const fs::path &p)
-    {
-       if(p.empty())
-            return p;
-       std::string path = p.string();
-       std::stack<std::string> st;
-       std::string dir = "";
-       for(size_t i = 0; i<path.size(); ++i)
-       {
-         if(path[i]!='/')
-            dir.push_back(path[i]);
-         
-         if(path[i]=='/' || i == path.size() -1)
-         {
-            if(dir != ".." && dir != "." && dir !="")
-            {
-                dir+='/';
-                st.push (dir);
-                dir.clear();
-            }
-            else if ( dir == "..")
-            {
-                if(!st.empty())
-                    st.pop();
-                dir.clear();
-            }
-            else if (dir == ".")
-                dir.clear(); 
-         }
-       } 
-       path.clear();
-       while(!st.empty())
-       {
-           path.insert(0, st.top());
-           st.pop();
-       }
-       if(!path.empty() && path[path.size() - 1] == '/')
-       {
-            path.pop_back();
-       }
-       path.insert(0,"/");
-       return fs::path(path);
     }
     void printTime(const fs::file_time_type& time_point)//Sources: https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
     {

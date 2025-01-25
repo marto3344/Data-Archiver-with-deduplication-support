@@ -55,23 +55,42 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     }
 }
 
-void Archive::ExtractArchive(const fs::path &targetPath, const std::vector<fs::path>& filteredPaths, std::fstream &bucketList, std::fstream &storage) const
+void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& archivePaths, std::fstream &bucketList, std::fstream &storage) const
 {
-    if(filteredPaths.empty() || filteredPaths[0] == "/")
+    if(archivePaths.empty() || (*archivePaths.begin()).string() == "/")
     {
         extractRec(root,targetPath,storage,bucketList);
     }
     else{
+        std::vector<fs::path> filteredPaths;
+        StorageManager::removeOverlappingPaths(filteredPaths,archivePaths);
+        std::unordered_set<std::string>pathsToFind;
+        std::vector<const archiveNode*>startingNodes;
         for (int i = 0; i < filteredPaths.size(); i++)
+        {   
+            pathsToFind.insert(filteredPaths[i].string());
+        }
+        findStartingNodes(root,startingNodes,pathsToFind);
+        if(startingNodes.size()< filteredPaths.size())
         {
-            const archiveNode* startNode = findStartingNode(filteredPaths[i]);
-            if(!startNode)
+            std::cout<<"Warning! Some of the input paths are incorect or missing in the archive! ";
+            std::cout<<"Dir missing count: "<<filteredPaths.size() - startingNodes.size()<<'\n';
+            std::cout<<"Do you want to continue anyway? Type (y/n):\n";
+            char responce;
+            std::cin>>responce;
+            if(responce == 'n')
             {
-                std::string msg = "Error!The path does not exist in the archive! Given path:\n";
-                msg.append(filteredPaths[i].string());
-                throw std::invalid_argument(msg);
+                return;
             }
-            extractRec(startNode,targetPath,storage,bucketList);
+            else if (responce != 'y')
+            {
+                std::cout<<"Unrecognized symbol: "<<responce<<'\n';
+                return;
+            }
+        }
+        for (int i = 0; i < startingNodes.size(); i++)
+        {
+            extractRec(startingNodes[i],targetPath,storage,bucketList);
         }
         
     }
@@ -295,19 +314,22 @@ void Archive::extractRec(const archiveNode *curr, const fs::path& targetPath, st
 
 
 
-const Archive::archiveNode *Archive::findStartingNode(const fs::path &path) const
+void Archive::findStartingNodes(const archiveNode* curr,std::vector<const archiveNode*>&nodes,std::unordered_set<std::string>& paths) const
 {
-    if(path.empty() || path.string() == "/")
-    {
-      return root;
-    }
-    else{
-        const archiveNode* dirTop = findTopDirNode(path);
-        fs::path remainingPath = StorageManager::trimPath(path);
-        fs::path::iterator it = remainingPath.begin();
-        const archiveNode* dirRoot = findRec(dirTop,remainingPath,it);
-        return dirRoot;
-    }
+   if(!curr)
+   {
+        return;
+   }
+   if(paths.find(curr->dirLabel)!= paths.end())
+   {
+        nodes.push_back(curr);
+        return;
+   }
+   for (int i = 0; i < curr->children.size(); i++)
+   {
+        findStartingNodes(curr->children[i],nodes,paths);
+   }
+   
 }
 
 const Archive::archiveNode *Archive::findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const
@@ -330,21 +352,7 @@ const Archive::archiveNode *Archive::findRec(const archiveNode *curr, const fs::
       }
     return nullptr;
 }
-const Archive::archiveNode *Archive::findTopDirNode(const fs::path &relativePath) const
-{
-    if(!root)
-        return nullptr;
-    std::string topDirLabel = StorageManager::topDirPath(relativePath);
-    for (int i = 0; i < root->children.size(); i++)
-    {
-        
-        if(root->children[i]&&root->children[i]->dirLabel == topDirLabel)
-        {
-            return root->children[i];
-        }
-    }
-    return nullptr;
-}
+
 void Archive::markRec(const archiveNode *curr, std::fstream &bucketList, std::fstream &storage)
 {
     if(!curr)
