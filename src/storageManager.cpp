@@ -46,14 +46,26 @@ namespace StorageManager
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         std::vector<fs::path> filteredDirectories;
-        removeOverlappingPaths(filteredDirectories, dirs);
-        a.CreateFromDirectoryList(filteredDirectories, bucketList, storage, hashOnly);
-        storage.close();
-        bucketList.close();
-        writeMetadata();
-        a.writeToFile(out);
-        out.close();
-        StorageStatistic();
+        try
+        {
+            removeOverlappingPaths(filteredDirectories, dirs);
+            a.CreateFromDirectoryList(filteredDirectories, bucketList, storage, hashOnly);
+            storage.close();
+            bucketList.close();
+            writeMetadata();
+            a.writeToFile(out);
+            out.close();
+            std::cout<<"Archive created successfully!\n";
+        }
+        catch(...)
+        {
+            std::cout<<"Something went wrong during create!";
+            storage.close();
+            bucketList.close();
+            out.close();
+        }
+        
+      
     }
 
     void ExtraxtArchive(const std::string &name, const fs::path &targetPath, const std::set<fs::path>& archivePaths)
@@ -327,7 +339,6 @@ namespace StorageManager
 
         fs::path archivesData(ARCHIVES_DATA_PATH);
         if (fs::exists(archivesData))
-            ;
         {
             for (const auto &entry : fs::directory_iterator(archivesData))
             {
@@ -427,7 +438,11 @@ namespace StorageManager
 
     void initializeBucketList()
     {
-        std::ofstream out(STORAGE_BUCKETLIST, std::ios::trunc | std::ios::binary);
+        if(fs::exists(STORAGE_BUCKETLIST))
+        {
+            fs::remove(STORAGE_BUCKETLIST);
+        }
+        std::ofstream out(STORAGE_BUCKETLIST, std::ios::binary);
         if (!out.is_open())
             throw std::runtime_error("Coudn't initialize storage bucket list!");
         uint64_t emptyBucketVal = 0;
@@ -440,7 +455,11 @@ namespace StorageManager
     void initializeStorageChains()
     {
         fs::path storageChainsPath(STORAGE_CHAINS);
-        std::ofstream chainsFile(storageChainsPath, std::ios::trunc | std::ios::binary);
+        if(fs::exists(storageChainsPath))
+        {
+            fs::remove(storageChainsPath);
+        }
+        std::ofstream chainsFile(storageChainsPath, std::ios::binary);
         if (!chainsFile.is_open())
             throw std::runtime_error("Error initializing storage information!");
         uint8_t dummyByte = 0x00;

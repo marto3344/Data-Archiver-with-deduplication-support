@@ -57,19 +57,22 @@ bool File::extractFile(std::ofstream& file,std::fstream& storage,std::fstream& b
     if(!file.is_open()||!storage.is_open()||!bucketList.is_open())
         return false;
     uintmax_t bytesWritten = 0;
+    FileChunk curr;
+    uint32_t bucketPos;
+    uint64_t listHead;
+    uint64_t nextChunk;
     for (int i = 0; i < chunk_list.size(); i++)
     {
-        FileChunk curr;
-        uint32_t bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
+        bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
         bucketList.seekg(bucketPos);
-        uint64_t listHead;
+        listHead;
         bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
         if (listHead != 0)
         {
             storage.seekg(listHead);
             for (;;)
             {
-                uint64_t nextChunk;
+                
                 if (storage.eof())
                     break;
                 curr.deserialize(storage);
@@ -109,19 +112,23 @@ void File::markFileDeleted(std::fstream &bucketList, std::fstream &storage)
     {
         return;
     }
+    FileChunk curr;
+    uint64_t listHead;
+    uint32_t bucketPos;
+    uint64_t nextChunk;
     for (int i = 0; i < chunk_list.size(); i++)
     {
-        FileChunk curr;
-        uint32_t bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
+        
+        bucketPos = (chunk_list[i].first % StorageManager::bucketListCapacity) * sizeof(uint64_t);
         bucketList.seekg(bucketPos);
-        uint64_t listHead;
+        
         bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
         if (listHead != 0)
         {
             storage.seekg(listHead);
             for (;;)
             {
-                uint64_t nextChunk;
+               
                 if (storage.eof())
                     break;
                 curr.deserialize(storage);
@@ -157,12 +164,14 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     uintmax_t bytesRead = 0;
     
     uintmax_t chunkSize;
-    
+    std::vector<uint8_t> buffer;
+    FileChunk curr;
     while (bytesRead<size && file.good()) {
         chunkSize = std::min((size - bytesRead),avgChunkSize);
-        std::vector<uint8_t> buffer(chunkSize,0x00);
-        FileChunk curr((uint32_t)chunkSize);
+        buffer.resize(chunkSize);
+    
         file.read(reinterpret_cast<char *>(buffer.data()),chunkSize);
+        curr.setChunkSize(chunkSize);
         curr.moveChunkData(buffer);
         curr.hashChunk();
         curr.storeChunk(storage,bucketList, hashOnly);

@@ -25,6 +25,7 @@ class FileChunk{
     uint64_t getHash() const {return hash;};
     uint64_t getId() const {return chunk_id;};
     uint32_t getChunkSize()const{return chunkSize;};
+    void setChunkSize(const uint32_t size){this->chunkSize =size;};
     uint32_t getFilesCount()const {return filesCount;};
     private:
     uint32_t chunkSize;

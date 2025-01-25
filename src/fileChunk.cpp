@@ -20,6 +20,7 @@ void FileChunk::deserialize(std::istream &in)
     in.read(reinterpret_cast<char*>(&filesCount),sizeof(uint32_t));
     in.read(reinterpret_cast<char*> (&hash),sizeof(uint64_t));
     in.read(reinterpret_cast<char*>(&chunk_id),sizeof(uint64_t));
+    chunk_data.clear();
     chunk_data.reserve(chunkSize);
     for(size_t i = 0; i < chunkSize; ++i)
     {
@@ -51,11 +52,12 @@ void FileChunk::writeChunkData(std::ofstream &out,uintmax_t size) const
 void FileChunk::moveChunkData(std::vector<uint8_t> &data)
 {
     chunk_data = std::move(data);
+    data.shrink_to_fit();
 }
 
 void FileChunk::hashChunk()
 {
-    this->hash = XXH64(chunk_data.data(),FileChunk::chunkSize,0);
+    this->hash = XXH64(chunk_data.data(),this->chunkSize,0);
 }
 
 bool FileChunk::compareChunkData(const FileChunk &other) const
@@ -80,14 +82,14 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, cons
 
     bucketList.seekg(bucketPos);
     uint64_t listHead;
+    uint64_t nextChunk;
+    FileChunk currChunk;
     bucketList.read(reinterpret_cast<char *>(&listHead), sizeof(uint64_t));
     if (listHead != 0)
     {
         storage.seekg(listHead);
         for (;;)
-        {
-            uint64_t nextChunk;
-            FileChunk currChunk;
+        {   
             if (storage.eof())
                 break;
             currChunk.deserialize(storage);
