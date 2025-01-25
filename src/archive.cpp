@@ -36,6 +36,7 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     root = new archiveNode();
     root->dirLabel = "";
     root->children.reserve(paths.size());
+    date_archived = fs::file_time_type::clock::now();
     try
     {
         for (int i = 0; i < paths.size(); i++)
@@ -82,6 +83,7 @@ void Archive::writeToFile(std::ofstream &out) const
     {
         throw std::invalid_argument("File is not opened!Can not read archive data");
     }
+    out.write(reinterpret_cast<const char*>(&date_archived),sizeof(fs::file_time_type));
     writeRec(root,out);
 }
 
@@ -93,12 +95,18 @@ void Archive::readFromFile(std::ifstream &in)
     }
     if(root)
         freeRec(root);
+    in.read(reinterpret_cast<char*>(&date_archived),sizeof(fs::file_time_type));
     readRec(root,in);
 }
 
 void Archive::dfsPrint() const
 {
     dfsRec(root);
+}
+
+void Archive::setDateArchived(const fs::file_time_type &dArchived)
+{
+    date_archived = dArchived;
 }
 
 void Archive::markAsRemoved(std::fstream &bucketList, std::fstream &storage)
@@ -233,8 +241,9 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
         {
             curr->files.push_back(f);
         }
-        else{//TODO: Better exception safety;
-            delete f;
+        else{
+            if(f)
+                delete f;
             std::string message ="Error! Can't store the file: ";
             message.append(dirFiles[i].string());
             message+='\n';

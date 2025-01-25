@@ -10,11 +10,9 @@ file(GLOB_RECURSE SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/
 
 add_library(backup_lib STATIC ${SOURCES})
 
-add_executable(backup_app ${SOURCES})
+add_executable(backup ${SOURCES})
 
-set_target_properties(backup_app PROPERTIES OUTPUT_NAME "backup")
-
-target_link_libraries(backup_app PRIVATE backup_lib)
+target_link_libraries(backup PRIVATE backup_lib)
 option(BUILD_TESTS "Build tests" ON)
 if(BUILD_TESTS)
     add_subdirectory(test)

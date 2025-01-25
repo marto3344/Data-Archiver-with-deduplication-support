@@ -225,18 +225,33 @@ namespace StorageManager
         std::vector<fs::path> filteredDirectories;
         removeOverlappingPaths(filteredDirectories, dirs);
         Archive updatedArchive;
-        updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);
         std::ofstream out(archive.string(), std::ios::binary);
         if (!out.is_open())
         {
             std::cout << "Cannot update the archive!Please try again later!\n";
+            storage.close();
+            bucketList.close();
             return;
         }
-        updatedArchive.writeToFile(out);
-        curr.markAsRemoved(bucketList,storage);
-        storage.close();
-        bucketList.close();
-        out.close();
+        try
+        {
+            updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);   
+            updatedArchive.setDateArchived(curr.getDateArchived());
+            updatedArchive.writeToFile(out);
+            curr.markAsRemoved(bucketList,storage);
+            storage.close();
+            bucketList.close();
+            out.close();
+
+        }
+        catch(...)
+        {
+            std::cout<<"Error!Archive wasn't updated!\n";
+            storage.close();
+            bucketList.close();
+            out.close();
+        }
+        std::cout<<"Archive updated successfully!\n";
 
     }
 

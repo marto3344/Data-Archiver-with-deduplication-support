@@ -24,6 +24,8 @@ public:
     void readFromFile(std::ifstream &in);
     bool empty() const {return !root;};
     void dfsPrint() const;
+    fs::file_time_type getDateArchived()const{return date_archived;};
+    void setDateArchived(const fs::file_time_type& dArchived);
     void markAsRemoved(std::fstream& bucketList, std::fstream& stoarge);
 
 private:
