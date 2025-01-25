@@ -332,26 +332,6 @@ void Archive::findStartingNodes(const archiveNode* curr,std::vector<const archiv
    
 }
 
-const Archive::archiveNode *Archive::findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const
-{
-    if(it == relativePath.end() || !curr)
-    {
-        return curr;
-    }
-    for (int i = 0; i < curr->children.size(); i++)
-    {
-        if(curr->children[i])
-        {
-            fs::path p (curr->children[i]->dirLabel);
-            if(p.filename().string() == (*it).string())
-            {
-                it++;
-                return findRec(curr->children[i],relativePath,it);
-            }
-        }
-      }
-    return nullptr;
-}
 
 void Archive::markRec(const archiveNode *curr, std::fstream &bucketList, std::fstream &storage)
 {
@@ -367,19 +347,7 @@ void Archive::markRec(const archiveNode *curr, std::fstream &bucketList, std::fs
     }
     
 }
-fs::path Archive::trimPath(const fs::path p) const
-{
-    std::string pathString = p.string();
-    int len = 1;
-   
-    for (int i = 1; i < pathString.size(); i++)
-    {
-        if(pathString[i] == '/')
-            break;
-       len++;
-    }
-    return fs::path(pathString.erase(0,len + 1));
-}
+
 Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
 {
     

@@ -55,9 +55,6 @@ private:
     void CreateFromDirectory(archiveNode*& curr,fs::path& dirPath,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
     void extractRec(const archiveNode* curr, const fs::path& targetPath, std::fstream& storage, std::fstream& bucketList) const;
     void findStartingNodes(const archiveNode* curr,std::vector<const archiveNode*>&nodes,std::unordered_set<std::string>& paths)const;
-    const archiveNode* findRec(const archiveNode *curr, const fs::path &relativePath, fs::path::iterator& it) const;
-    const archiveNode* findTopDirNode(const fs::path& relativePath) const;
     void markRec(const archiveNode* curr,std::fstream& bucketList, std::fstream& stoarge);
-    fs::path trimPath(const fs::path p) const;
 };
 #endif
