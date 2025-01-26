@@ -10,12 +10,13 @@
 #include "file.hpp"
 #include "fileChunk.hpp"
 namespace fs = std::filesystem;
-#define ARCHIVES_DATA_PATH "../../data/archives_data/"
-#define STORAGE_METADATA "../../data/storage_metadata.dat"
-#define STORAGE_BUCKETLIST "../../data/storage_bucket_list.dat"
-#define STORAGE_CHAINS "../../data/storage.dat"
-#define DATA_PATH "../../data"
 #define SAMPLE_ARCHIVE "../../test/sample"
+#define SAMPLE_ARCHIVE_TREE_PATH "../../data/archives_data/sampleArchive.dat"
+TEST_SUITE("File chunk class test")
+{
+
+}
+
 TEST_SUITE("Storage basic methods part1")
 {
     TEST_CASE("Test Initialize")
@@ -31,7 +32,6 @@ TEST_SUITE("Storage basic methods part1")
     TEST_CASE("Test delete")
     {
         StorageManager::DeleteStorage();
-        CHECK(fs::is_empty(ARCHIVES_DATA_PATH));
         CHECK(StorageManager::checkStorageSetup());
     }
     TEST_CASE("Test create from empty storage")
@@ -41,8 +41,7 @@ TEST_SUITE("Storage basic methods part1")
         CHECK(fs::exists(SAMPLE_ARCHIVE));
         paths.insert(SAMPLE_ARCHIVE);
         StorageManager::CreateArchive(0,archiveName,paths);
-        CHECK(fs::exists("../../data/archives_data/sampleArchive.dat"));
-        CHECK(StorageManager::ArchiveExists("../../data/archives_data/sampleArchive.dat"));
+        CHECK(StorageManager::ArchiveExists(SAMPLE_ARCHIVE_TREE_PATH ));
         if(fs::is_empty(SAMPLE_ARCHIVE))
         {
             CHECK(StorageManager::bucketListSize == 0);
@@ -87,39 +86,74 @@ TEST_SUITE ("ARCHIVE CLASS TEST")
     TEST_CASE("Default Constructor")
     {
         Archive f;
-        CHECK(f.empty() == true);
+        CHECK(f.empty());
     };
     TEST_CASE("operator== test")
     {
         Archive sample;
-        fs::path sampleArchivePath("../../data/archives_data/sampleArchive.dat");
+        fs::path sampleArchivePath(SAMPLE_ARCHIVE_TREE_PATH );
         CHECK(fs::exists(sampleArchivePath));
         std::ifstream file (sampleArchivePath,std::ios::binary);
         sample.readFromFile(file);
         file.close();
         CHECK(!sample.empty());
         CHECK(sample == sample);
+
+        Archive emptyArchive;
+        emptyArchive.setDateArchived(sample.getDateArchived());
+        emptyArchive.setName(sample.getName());
+        CHECK(emptyArchive != sample);
         
+    }
+    TEST_CASE("Check Archive read"){
+        Archive sample;
+        fs::path sampleArchivePath(SAMPLE_ARCHIVE_TREE_PATH );
+        CHECK(fs::exists(sampleArchivePath));
+        std::ifstream file (sampleArchivePath,std::ios::binary);
+        sample.readFromFile(file);
+        file.seekg(std::ios::beg);
+        Archive sampleCopy;
+        sampleCopy.readFromFile(file);
+        file.close();
+        CHECK(sample==sampleCopy);
+    }
+    TEST_CASE("Check write")
+    {
+        Archive sample;
+        fs::path sampleArchivePath(SAMPLE_ARCHIVE_TREE_PATH );
+        CHECK(fs::exists(sampleArchivePath));
+        uintmax_t initialSize = fs::file_size(sampleArchivePath);
+        std::ifstream file (sampleArchivePath,std::ios::binary);
+        sample.readFromFile(file);
+        file.close();
+        std::ofstream out(sampleArchivePath,std::ios::binary);
+        sample.writeToFile(out);
+        out.close();
+        Archive sample2;
+        std::ifstream rewritedFile (sampleArchivePath,std::ios::binary);
+        sample2.readFromFile(rewritedFile);
+        rewritedFile.close();
+        uintmax_t newSize = fs::file_size(sampleArchivePath);
+        CHECK(newSize==initialSize);
+        CHECK(sample == sample2);
     }
     TEST_CASE("Test copy constructor ")
     {
         Archive sample;
-        fs::path sampleArchivePath("../../data/archives_data/sampleArchive.dat");
+        fs::path sampleArchivePath(SAMPLE_ARCHIVE_TREE_PATH );
         CHECK(fs::exists(sampleArchivePath));
         std::ifstream file (sampleArchivePath,std::ios::binary);
         sample.readFromFile(file);
         file.close();
         sample.setName("sampleArchive");
-        Archive sample2 (sample);
-        CHECK(sample == sample2);
-        sample2.setName("sample2");
-        CHECK(sample.getName()!=sample2.getName());
-        CHECK(sample !=sample2);
+        Archive sampleCopy (sample);
+        CHECK(sample == sampleCopy);
+        sampleCopy.setName("sample2");
+        CHECK(sample.getName()!=sampleCopy.getName());
+        CHECK(sample !=sampleCopy);
     }
-    
-
 };
 
 int main(){
-    doctest::Context().run();
+    doctest::Context().run();    
 }

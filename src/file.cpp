@@ -85,7 +85,7 @@ bool File::extractFile(std::ofstream& file,std::fstream& storage,std::fstream& b
             } 
        } // End if
         uintmax_t chunkSize = std::min(size - bytesWritten, (uintmax_t)curr.getChunkSize());
-        curr.writeChunkData(file, chunkSize);
+        curr.writeChunkData(file);
         bytesWritten += chunkSize;
     } 
     return true;
@@ -93,11 +93,20 @@ bool File::extractFile(std::ofstream& file,std::fstream& storage,std::fstream& b
 
 bool File::storeFile(const fs::path &file,std::fstream& bucketList, std::fstream &stoarge, const bool hashOnly) 
 {
-    if(hashFile(file,bucketList,stoarge, hashOnly))
+    try
     {
-        StorageManager::totalFiles++;
-        return true;
-    };
+        bool result = hashFile(file,bucketList,stoarge, hashOnly);
+        if(result)
+        {
+            StorageManager::totalFiles++;
+
+        }
+        return result;
+    }
+    catch(...)
+    {
+        return false;
+    } 
     return false; 
 }
 

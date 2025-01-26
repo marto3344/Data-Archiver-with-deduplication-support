@@ -21,7 +21,7 @@ public:
     Archive& operator=(Archive && rhs);
     bool operator==(const Archive& other) const;
     bool operator!=(const Archive&other) const {return !(*this==other);};
-    void CreateFromDirectoryList(std::vector<fs::path>& paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
+    bool CreateFromDirectoryList(std::vector<fs::path>& paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly);
     void ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& archivePaths, std::fstream& bucketList, std::fstream& stoarge )const;
     void writeToFile(std::ofstream &out) const;
     void readFromFile(std::ifstream &in);

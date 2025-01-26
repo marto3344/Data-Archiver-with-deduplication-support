@@ -38,7 +38,7 @@ bool Archive::operator==(const Archive &other) const
     return (name==other.name)&&(date_archived == other.date_archived)&&compareRec(root,other.root);
 }
 
-void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
+bool Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
 {
     root = new archiveNode();
     root->dirLabel = "";
@@ -54,12 +54,19 @@ void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream&
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        stoarge.close();
+        bucketList.close();
+        std::cerr << e.what()<<'\n';
+        return false;
     }
     catch(...)
     {
-        std::cout<<"Somethig went wrong creting the archives";
+        stoarge.close();
+        bucketList.close();
+        std::cout<<"Somethig went wrong during this operation!";
+        return false;
     }
+    return true;
 }
 
 void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path>& archivePaths, std::fstream &bucketList, std::fstream &storage) const
@@ -185,7 +192,7 @@ void Archive::writeRec(const archiveNode *curr, std::ofstream &out) const
 {
     if(!curr)
         return;
-    
+    out.write(reinterpret_cast<const char*>(&curr->last_modified),sizeof(fs::file_time_type));
     size_t filesSize =curr->files.size();
     out.write(reinterpret_cast<const char*>(&filesSize), sizeof(size_t));
     for (size_t i = 0; i < filesSize; i++)
@@ -209,6 +216,7 @@ void Archive::readRec(archiveNode *&curr, std::ifstream &in)
         return;
     curr = new archiveNode();
     size_t filesSize = 0;
+    in.read(reinterpret_cast<char*>(&curr->last_modified),sizeof(fs::file_time_type));
     in.read(reinterpret_cast<char*>(&filesSize),sizeof(size_t));
     curr->files.reserve(filesSize);
     for (int i = 0; i < filesSize; i++)
@@ -264,9 +272,8 @@ void Archive::CreateFromDirectory(archiveNode*& curr, fs::path &dirPath,std::fst
         else{
             if(f)
                 delete f;
-            std::string message ="Error! Can't store the file: ";
+            std::string message ="Can't store the file: ";
             message.append(dirFiles[i].string());
-            message+='\n';
             throw std::runtime_error(message);
         }
     }

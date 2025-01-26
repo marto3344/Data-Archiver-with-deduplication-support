@@ -50,22 +50,27 @@ namespace StorageManager
         try
         {
             removeOverlappingPaths(filteredDirectories, dirs);
-            a.CreateFromDirectoryList(filteredDirectories, bucketList, storage, hashOnly);
-            storage.close();
-            bucketList.close();
-            std::cout << "Total files stored in storage: " << totalFiles << '\n';
-            std::cout << "Total chunks stored in storage: " << bucketListSize << '\n';
-            std::cout<<"Last added  chunk id: "<<lastChunkId<<'\n';
-            std::cout<<"Bucket list capacity: "<<bucketListCapacity<<'\n';
-            std::cout<<"Load factor: "<<(double)bucketListSize/(double)bucketListCapacity<<'\n';
+            bool result = a.CreateFromDirectoryList(filteredDirectories, bucketList, storage, hashOnly);
             writeMetadata();
-            a.writeToFile(out);
-            out.close();
-            std::cout<<"Archive created successfully!\n";
+            if(result)
+            {
+                storage.close();
+                bucketList.close();
+                a.writeToFile(out);
+                out.close();
+                StorageManager::StorageStatistic();
+                std::cout<<"Archive created successfully!\n";
+
+            }
+            else{
+                out.close();
+                fs::remove(archivePath);
+                std::cout<<"Operation terminated!\n";
+            }
         }
         catch(...)
         {
-            std::cout<<"Something went wrong during create!";
+            std::cout<<"Something went wrong!";
             storage.close();
             bucketList.close();
             out.close();
@@ -123,6 +128,7 @@ namespace StorageManager
             a.ExtractArchive(targetPath,archivePaths, bucketList, storage);
             storage.close();
             bucketList.close();
+            std::cout<<"Archive extracted successfully!\n";
         }
         catch (const std::exception &e)
         {
@@ -243,7 +249,8 @@ namespace StorageManager
         std::vector<fs::path> filteredDirectories;
         removeOverlappingPaths(filteredDirectories, dirs);
         Archive updatedArchive;
-        std::ofstream out(archive.string(), std::ios::binary);
+        std::ofstream out(archive.string(), std::ios::binary| std::ios::app);
+        out.seekp(std::ios::beg);
         if (!out.is_open())
         {
             std::cout << "Cannot update the archive!Please try again later!\n";
@@ -253,21 +260,29 @@ namespace StorageManager
         }
         try
         {
-            updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);   
+            bool res = updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);
+            writeMetadata();
+            if(!res)
+            {
+                std::cout<<"Archive wasn't updated!\n";
+                out.close();
+                return;
+            }   
             updatedArchive.setDateArchived(curr.getDateArchived());
             updatedArchive.writeToFile(out);
             curr.markAsRemoved(bucketList,storage);
-            storage.close();
-            bucketList.close();
             out.close();
-
+            bucketList.close();
+            storage.close();
+            return;
         }
         catch(...)
         {
-            std::cout<<"Error!Archive wasn't updated!\n";
+            std::cout<<"Something unexpected happened!\n";
             storage.close();
             bucketList.close();
             out.close();
+            return;
         }
         std::cout<<"Archive updated successfully!\n";
 

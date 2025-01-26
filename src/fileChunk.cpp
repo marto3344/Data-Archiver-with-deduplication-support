@@ -41,7 +41,7 @@ void FileChunk::serialize(std::ostream &out) const
     out.write(reinterpret_cast<const char*>(chunk_data.data()),size);
 }
 
-void FileChunk::writeChunkData(std::ofstream &out,uintmax_t size) const
+void FileChunk::writeChunkData(std::ofstream &out) const
 {
     if(!out.is_open()||!out.good())
         return;

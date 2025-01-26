@@ -13,7 +13,7 @@ class FileChunk{
     FileChunk(const std::vector<uint8_t>& data);
     void deserialize(std::istream& in);
     void serialize (std::ostream& out)const;
-    void writeChunkData(std::ofstream& out, uintmax_t size) const;
+    void writeChunkData(std::ofstream& out) const;
     void hashChunk();
     bool compareChunkData(const FileChunk& other) const;
     void storeChunk(std::fstream& storage,std::fstream& bucketList, const bool hashOnly);
