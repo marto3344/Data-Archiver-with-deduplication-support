@@ -1,8 +1,3 @@
-#define ARCHIVES_DATA_PATH "../data/archives_data/"
-#define STORAGE_METADATA "../data/storage_metadata.dat"
-#define STORAGE_BUCKETLIST "../data/storage_bucket_list.dat"
-#define STORAGE_CHAINS "../data/storage.dat"
-#define DATA_PATH "../data"
 #include<filesystem>
 #include<set>
 #include<fstream>
@@ -11,6 +6,12 @@
 #include "storageManager.hpp"
 #include "archive.hpp"
 #include "file.hpp"
+#define SRC (fs::path(__FILE__))
+#define ARCHIVES_DATA_PATH (SRC.append( "../../data/archives_data/").string())
+#define STORAGE_METADATA (SRC.append("../../data/storage_metadata.dat").string())
+#define STORAGE_BUCKETLIST (SRC.append("../../data/storage_bucket_list.dat").string())
+#define STORAGE_CHAINS (SRC.append("../../data/storage.dat").string())
+#define DATA_PATH (SRC.append("../../data").string())
 namespace fs =std::filesystem;
 namespace StorageManager
 {

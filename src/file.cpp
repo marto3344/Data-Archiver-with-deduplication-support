@@ -152,6 +152,11 @@ void File::markFileDeleted(std::fstream &bucketList, std::fstream &storage)
     } 
 }
 
+bool File::operator==(const File &other) const
+{
+    return(name == other.name)&&(size == other.size)&&(last_modified ==other.last_modified)&&(chunk_list == other.chunk_list);
+}
+
 bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstream& storage,  const bool hashOnly)
 {
     std::ifstream file(filePath, std::ios::binary);
@@ -161,7 +166,14 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     this->last_modified = fs::last_write_time(filePath);
     this->size = fs::file_size(filePath);
     uint32_t maxChunkSize = (1<<25);//32MB
-    uint32_t avgChunkSize = (size > 10) ? std::min((uint32_t)(size / 10), maxChunkSize ) : size;
+    uint32_t avgChunkSize;
+    if(size<(1<<19))
+    {
+        avgChunkSize = size;
+    }
+    else{
+        avgChunkSize = std::min((uint32_t)(size / 10), maxChunkSize );
+    }
     uintmax_t bytesRead = 0;
     std::vector<uint8_t>buffer(avgChunkSize);
     uintmax_t chunkSize;
@@ -190,21 +202,4 @@ bool File::hashFile(const fs::path &filePath, std::fstream& bucketList,std::fstr
     file.close();
     return result;
 
-}
-
-uint32_t File::determineChunkSize()
-{
-    if(size<=(1<<16))//<= 64KB
-    {
-        return (uint32_t)size;
-    }
-    else if(size > (1<<16) && size <= (1<<20))//>64 KB && <= 1MB
-    {
-        return (1<<16);
-    }
-    else if(size>(1<<20) && size <= (1<<29))//> 1MB &&  <= 512 MB
-    {
-        return (1<<19); //512 KB
-    }
-    return (1<<22); //4MB
 }

@@ -24,14 +24,14 @@ class File{
     std::string getName() const {return name;};
     void setName(const std::string& filename);
     void markFileDeleted(std::fstream& bucketList, std::fstream& stoarge);
+    bool operator==(const File& other)const;
+    bool operator!=(const File& other) const {return !(*this == other);};
     private:
     fs::file_time_type last_modified;
     uintmax_t size;
     std::string name;
     std::vector<std::pair<uint64_t,uint64_t>>chunk_list;//{hash_value, chunk_id}
     bool hashFile (const fs::path &filePath, std::fstream& bucketList,std::fstream& storage,  const bool hashOnly);
-    uint32_t determineChunkSize();
-
 
 };
 #endif

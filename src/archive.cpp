@@ -4,6 +4,8 @@
 
 Archive::Archive(const Archive &other)
 {
+    date_archived = other.date_archived;
+    name = other.name;
     copyRec(root,other.root);
 }
 
@@ -29,6 +31,11 @@ Archive &Archive::operator=(Archive &&rhs)
         std::swap(root,rhs.root);
     }
     return *this;
+}
+
+bool Archive::operator==(const Archive &other) const
+{
+    return (name==other.name)&&(date_archived == other.date_archived)&&compareRec(root,other.root);
 }
 
 void Archive::CreateFromDirectoryList(std::vector<fs::path> &paths,std::fstream& bucketList, std::fstream& stoarge, const bool hashOnly)
@@ -165,7 +172,7 @@ void Archive::copyRec(archiveNode *&root, const archiveNode *otherRoot)
 {
     if(!otherRoot)
         return;
-    root = new archiveNode(otherRoot->dirLabel,otherRoot->files);
+    root = new archiveNode(otherRoot->last_modified,otherRoot->dirLabel,otherRoot->files);
     root->children.reserve(otherRoot->children.size());
     for (int i = 0; i < otherRoot->children.size(); i++)
     {
@@ -336,9 +343,33 @@ void Archive::markRec(const archiveNode *curr, std::fstream &bucketList, std::fs
     
 }
 
-Archive::archiveNode::archiveNode(const std::string dirLabel, const std::vector<File *> &files)
+bool Archive::compareRec(const archiveNode *root, const archiveNode *otherRoot) const
 {
-    
+    if(!root || !otherRoot)
+        return root==otherRoot;
+
+    if(root->files.size()!=otherRoot->files.size() || root->children.size() != otherRoot->children.size())
+        return false;
+    if(root->dirLabel != otherRoot->dirLabel || root->last_modified != otherRoot->last_modified)
+        return false;
+    for (int i = 0; i < root->files.size(); i++)
+    {
+        if(!(*(root->files[i]) == *(otherRoot->files[i])))
+        {
+            return false;
+        }
+    }
+    bool result = true;
+    for (int i = 0; i < root->children.size(); i++)
+    {
+        result = result && compareRec(root->children[i],otherRoot->children[i]);
+    }
+    return result;
+}
+
+Archive::archiveNode::archiveNode(const fs::file_time_type& last_modified,const std::string dirLabel, const std::vector<File *> &files)
+{
+    this->last_modified = last_modified;
     this->dirLabel = dirLabel;
     this->files.reserve(files.size());
     for (size_t i = 0; i < files.size(); i++)
