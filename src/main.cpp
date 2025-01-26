@@ -192,7 +192,15 @@ int main(int argc, const char * argv[])
     {
         using namespace std;
         cout<<"Here is a list of commands!\n";
-        //TODO: List the commands
+        cout<<"create <name> hash-only? [directories]\n";
+        cout<<"extract <name> <target path> <archive-path>*\n";
+        cout<<"check <name> <target-path> <archive-paths>*\n";
+        cout<<"update <name> [directories]";
+        cout<<"info <name> - info about the archive\n";
+        cout<<"storage-statistic - info about the storage system \n";
+        cout<<"initialize - initializes the reiquiered folders and files\n";
+        cout<<"delete - deletes all the storage information!\n";
+        return 0;
     }
     else if (commandNumber == 4)//Update
     {

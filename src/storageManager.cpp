@@ -173,15 +173,13 @@ namespace StorageManager
         }
         catch (const std::exception &e)
         {
-            if (in.is_open())
-                in.close();
+            in.close();
             std::cerr << e.what() << '\n';
         }
         catch (...)
         {
             std::cout << "Something went wrong during archive fetch!\n";
-            if (in.is_open())
-                in.close();
+            in.close();
         }
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
@@ -234,54 +232,61 @@ namespace StorageManager
         }
         catch (const std::exception &e)
         {
-            if (in.is_open())
-                in.close();
+            in.close();
             std::cerr << e.what() << '\n';
         }
         catch (...)
         {
             std::cout << "Something went wrong during archive fetch!\n";
-            if (in.is_open())
-                in.close();
+            in.close();
         }
         std::fstream storage(STORAGE_CHAINS, std::ios::in | std::ios::out | std::ios::binary);
         std::fstream bucketList(STORAGE_BUCKETLIST, std::ios::in | std::ios::out | std::ios::binary);
         std::vector<fs::path> filteredDirectories;
         removeOverlappingPaths(filteredDirectories, dirs);
         Archive updatedArchive;
-        std::ofstream out(archive.string(), std::ios::binary| std::ios::app);
-        out.seekp(std::ios::beg);
-        if (!out.is_open())
-        {
-            std::cout << "Cannot update the archive!Please try again later!\n";
-            storage.close();
-            bucketList.close();
-            return;
-        }
+    
         try
         {
             bool res = updatedArchive.CreateFromDirectoryList(filteredDirectories,bucketList,storage,hashOnly);
             writeMetadata();
             if(!res)
             {
-                std::cout<<"Archive wasn't updated!\n";
-                out.close();
+                std::cout<<"Error!Archive wasn't updated!\n";
                 return;
-            }   
+            }
+            std::ofstream out(archive.string(), std::ios::binary);
             updatedArchive.setDateArchived(curr.getDateArchived());
-            updatedArchive.writeToFile(out);
-            curr.markAsRemoved(bucketList,storage);
+            try
+            {
+                updatedArchive.writeToFile(out);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+                out.close();
+                bucketList.close();
+                storage.close();
+                return;
+            }
+            catch(...)
+            {
+                std::cout<<"Error! Cant'write updated information";
+                out.close();
+                bucketList.close();
+                storage.close();
+                return;
+            }
             out.close();
             bucketList.close();
             storage.close();
-            return;
         }
         catch(...)
         {
             std::cout<<"Something unexpected happened!\n";
             storage.close();
             bucketList.close();
-            out.close();
+            //out.close();
             return;
         }
         std::cout<<"Archive updated successfully!\n";
