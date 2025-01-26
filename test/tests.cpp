@@ -14,7 +14,68 @@ namespace fs = std::filesystem;
 #define SAMPLE_ARCHIVE_TREE_PATH "../../data/archives_data/sampleArchive.dat"
 TEST_SUITE("File chunk class test")
 {
+    TEST_CASE("Default constructor")
+    {
+        FileChunk f;
+        CHECK(f.getFilesCount()==1);
+        CHECK(f.getChunkSize()==0);
+    }
+    TEST_CASE("Constructing with vector")
+    {
+        std::vector<uint8_t>sample_data= {0,1,2,11,3,5,8,255};
+        FileChunk f(sample_data);
+        CHECK(f.getChunkSize()==sample_data.size());
+        sample_data.pop_back();
+        CHECK(f.getChunkSize()!=sample_data.size());
+    }
+    TEST_CASE("Hash tets")
+    {     
+        std::vector<uint8_t>sample_data= {0,1,2,11,3,5,8,255};
+        FileChunk f(sample_data);
+        FileChunk g (sample_data);
+        f.hashChunk();
+        g.hashChunk();
+        CHECK(f.getHash()==g.getHash());
+       
+    }
+    TEST_CASE("write chunk data test")
+    {
+        std::vector<uint8_t> sample_data = {0, 1, 2, 11, 3, 5, 8, 255};
+        FileChunk f(sample_data);
+        FileChunk nullChunk;
+        CHECK(!f.compareChunkData(nullChunk));
+        std::ofstream out("output.dat", std::ios::binary | std::ios::trunc);
+        f.writeChunkData(out);
+        out.close();
 
+        std::ifstream in("output.dat", std::ios::binary);
+        std::vector<uint8_t> fileData(sample_data.size(), 0);
+        in.read(reinterpret_cast<char *>(fileData.data()), sample_data.size());
+        in.close();
+        FileChunk g(fileData);
+        f.hashChunk();
+        g.hashChunk();
+        CHECK(f.getHash()==g.getHash());
+        CHECK(f.getChunkSize()==g.getChunkSize());
+        CHECK(f.compareChunkData(g));
+        CHECK(!g.compareChunkData(nullChunk));
+    }
+    TEST_CASE("serializiation and deserialization")
+    {
+        std::vector<uint8_t> sample_data = {0, 1, 2, 11, 3, 5, 8, 255};
+        FileChunk f(sample_data);
+        f.setId(0);
+        f.hashChunk();
+        std::ofstream out("output.dat", std::ios::binary | std::ios::trunc);
+        f.serialize(out);
+        out.close();
+        FileChunk g;
+        std::ifstream in ("output.dat",std::ios::binary);
+        g.deserialize(in);
+        in.close();
+        CHECK(f==g);       
+
+    }
 }
 
 TEST_SUITE("Storage basic methods part1")

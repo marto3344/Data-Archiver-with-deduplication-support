@@ -86,7 +86,8 @@ int main(int argc, const char * argv[])
     }
     if(commandNumber  == 0)//Check
     {
-        
+        std::cout<<"Check function currently not working :( . It will be implemented later!\n";
+        return 0;
     }
     else if (commandNumber == 1)//Create
     {

@@ -128,4 +128,7 @@ void FileChunk::storeChunk(std::fstream &storage, std::fstream &bucketList, cons
     bucketList.write(reinterpret_cast<const char *>(&newHead), sizeof(uint64_t));
 }
 
-
+bool FileChunk::operator==(const FileChunk &other) const
+{
+    return (chunk_id == other.chunk_id)&&(hash==other.hash)&&(compareChunkData(other));
+}

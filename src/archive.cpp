@@ -87,8 +87,7 @@ void Archive::ExtractArchive(const fs::path &targetPath, const std::set<fs::path
         findStartingNodes(root,startingNodes,pathsToFind);
         if(startingNodes.size()< filteredPaths.size())
         {
-            std::cout<<"Some of the input paths are incorect or missing in the archive! ";
-            return;
+            throw::std::invalid_argument("Some of the input paths are incorect or missing in the archive! ");
         }
         for (int i = 0; i < startingNodes.size(); i++)
         {
